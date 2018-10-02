@@ -2,6 +2,7 @@
 ;;
 ;; TODO: Implement modeline indicator for deadline and entries
 ;; TODO: Update buffer if command modifies the state
+;; TODO: Extract "1-1000" id filter into variable
 
 (require 'json)
 
@@ -42,10 +43,8 @@
 
 (defun taskwarrior-export (filter)
   "Export taskwarrior entries as JSON"
-  (let ((filter (concat "id " filter))
-	(command "export"))
     (json-read-from-string
-     (taskwarrior--shell-command command filter))))
+     (taskwarrior--shell-command "export" filter)))
 
 (defun taskwarrior-change-project (project)
   (interactive "sProject: ")
@@ -86,7 +85,7 @@ the front and focus it.  Otherwise, create one and load the data."
 	(forward-char)))))
 
 (defun taskwarrior-write-entries ()
-  (let ((entries (append (taskwarrior-export "context:personal") nil)))
+  (let ((entries (append (taskwarrior-export "1-1000") nil)))
     (dolist (entry entries)
       (progn
 	(insert (format
