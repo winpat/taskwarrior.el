@@ -51,11 +51,11 @@
   (let ((filter (taskwarrior-id-at-point))
 	(command "modify")
 	(modifications (concat "project:" project)))
-    (taskwarrior--shell-comand command filter modifications)))
+    (taskwarrior--shell-command command filter modifications)))
 
 (defun taskwarrior-add (description)
   (interactive "sDescription: ")
-    (taskwarrior--shell-comand "add" "" description))
+    (taskwarrior--shell-command "add" "" description))
 
 ;; Setup a major mode for taskwarrior
 ;;;###autoload
