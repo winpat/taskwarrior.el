@@ -72,12 +72,15 @@
   "Open the taskwarrior buffer.  If one already exists, bring it to
 the front and focus it.  Otherwise, create one and load the data."
   (interactive)
+  (taskwarrior-update-buffer))
+
+(defun taskwarrior-update-buffer ()
   (let* ((buf (get-buffer-create "taskwarrior")))
     (progn
       (switch-to-buffer buf)
       (setq font-lock-defaults '(taskwarrior-highlight-regexps))
-      (toggle-read-only)
       (goto-char (point-min))
+      (toggle-read-only)
       (erase-buffer)
       (taskwarrior-write-entries)
       (taskwarrior-mode)
