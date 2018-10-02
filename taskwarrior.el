@@ -38,7 +38,7 @@
 	   (or filter "")
 	   command
 	   (or modifications "")
-	   (or miscellaneous))))
+	   (or miscellaneous ""))))
 
 (defun taskwarrior-export (filter)
   "Export taskwarrior entries as JSON"
