@@ -60,13 +60,13 @@
 ;; Setup a major mode for taskwarrior
 ;;;###autoload
 (define-derived-mode taskwarrior-mode text-mode "taskwarrior"
-  "Major mode for working with taskwarrior. \\{taskwarrior-mode-map}"
+  "Major mode for interacting with taskwarrior. \\{taskwarrior-mode-map}"
   (setq font-lock-defaults '(taskwarrior-highlight-regexps))
   (setq goal-column 0)
   (auto-revert-mode)
   (setq buffer-read-only t))
 
-;;; externally visible functions
+;;; Externally visible functions
 ;;;###autoload
 (defun taskwarrior ()
   "Open the taskwarrior buffer.  If one already exists, bring it to
