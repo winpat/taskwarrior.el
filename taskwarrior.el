@@ -55,7 +55,7 @@
 
 (defun taskwarrior-add (description)
   (interactive "sDescription: ")
-    (taskwarrior--shell-command "add" "" description))
+  (taskwarrior--shell-command "add" "" description))
 
 ;; Setup a major mode for taskwarrior
 ;;;###autoload
