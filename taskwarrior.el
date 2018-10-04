@@ -84,6 +84,8 @@ the front and focus it.  Otherwise, create one and load the data."
       (erase-buffer)
       (taskwarrior-write-entries)
       (taskwarrior-mode)
+      (hl-line-mode)
+      (goto-char (point-min))
       (while (not (equal (overlays-at (point)) nil))
 	(forward-char)))))
 
