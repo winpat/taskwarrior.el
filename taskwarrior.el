@@ -92,12 +92,19 @@ the front and focus it.  Otherwise, create one and load the data."
       (while (not (equal (overlays-at (point)) nil))
 	(forward-char)))))
 
+(defun taskwarrior--sort-by-urgency (entries &optional asc)
+  (let ((cmp (if asc '< '>)))
+    (sort entries #'(lambda (x y)
+		    (> (alist-get 'urgency x)
+		       (alist-get 'urgency y))))))
+
+
 (defun vector-to-list (vector)
   "Convert a vector to a list"
   (append vector nil))
 
 (defun taskwarrior-write-entries ()
-  (let ((entries (append (taskwarrior-export "1-1000") nil)))
+  (let ((entries (taskwarrior--sort-by-urgency (taskwarrior-export "1-1000"))))
     (dolist (entry entries)
       (let ((id (alist-get 'id entry))
 	    (urgency (alist-get 'urgency entry))
