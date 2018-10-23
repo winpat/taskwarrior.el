@@ -8,14 +8,16 @@
 
 (defgroup taskwarrior nil "An emacs frontend to taskwarrior.")
 
+(defconst taskwarrior-mutating-commands '("add" "modify"))
+
 (defvar taskwarrior-description 'taskwarrior-description
   "Taskwarrior mode face used for tasks with a priority of C.")
 
 (setq taskwarrior-highlight-regexps
       `(("^[0-9]*" . font-lock-variable-name-face)
-	("(.*)" . font-lock-builtin-face)
+	("([0-9.]*?)" . font-lock-builtin-face)
+	("\\[.*\\]" . font-lock-preprocessor-face)
 	("[:space:].*:" . font-lock-function-name-face)))
-
 
 (defvar taskwarrior-mode-map nil "Keymap for `taskwarrior-mode'")
 (progn
@@ -92,10 +94,10 @@ the front and focus it.  Otherwise, create one and load the data."
 (defun taskwarrior-write-entries ()
   (let ((entries (append (taskwarrior-export "1-1000") nil)))
     (dolist (entry entries)
-      (progn
-	(insert (format
-		 "%-2d (%0.2f) %s: %s?\n"
-		 (alist-get 'id entry)
-		 (alist-get 'urgency entry)
-		 (alist-get 'project entry)
-		 (alist-get 'description entry)))))))
+      (let ((id (alist-get 'id entry))
+	    (urgency (alist-get 'urgency entry))
+	    (project (alist-get 'project entry))
+	    (description (alist-get 'description entry)))
+	(insert (if project
+		    (format "%-2d (%05.2f) [%s] %s?\n" id urgency project description)
+		    (format "%-2d (%05.2f) %s?\n" id urgency description)))))))
