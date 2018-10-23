@@ -45,8 +45,9 @@
 
 (defun taskwarrior-export (filter)
   "Export taskwarrior entries as JSON"
-    (json-read-from-string
-     (taskwarrior--shell-command "export" filter)))
+  (vector-to-list
+   (json-read-from-string
+    (taskwarrior--shell-command "export" filter))))
 
 (defun taskwarrior-change-project (project)
   (interactive "sProject: ")
@@ -90,6 +91,10 @@ the front and focus it.  Otherwise, create one and load the data."
       (goto-char (point-min))
       (while (not (equal (overlays-at (point)) nil))
 	(forward-char)))))
+
+(defun vector-to-list (vector)
+  "Convert a vector to a list"
+  (append vector nil))
 
 (defun taskwarrior-write-entries ()
   (let ((entries (append (taskwarrior-export "1-1000") nil)))
