@@ -49,6 +49,10 @@
    (json-read-from-string
     (taskwarrior--shell-command "export" filter))))
 
+(defun taskwarrior-load-tasks (filter)
+  "Load tasks into buffer-local variable"
+  (setq-local taskwarrior-tasks (taskwarrior-export filter)))
+
 (defun taskwarrior-change-project (project)
   (interactive "sProject: ")
   (let ((filter (taskwarrior-id-at-point))
@@ -81,30 +85,31 @@ the front and focus it.  Otherwise, create one and load the data."
   (let* ((buf (get-buffer-create "taskwarrior")))
     (progn
       (switch-to-buffer buf)
+      (taskwarrior-mode)
       (setq font-lock-defaults '(taskwarrior-highlight-regexps))
       (goto-char (point-min))
       (toggle-read-only)
       (erase-buffer)
+      (taskwarrior-load-tasks "1-1000")
       (taskwarrior-write-entries)
-      (taskwarrior-mode)
       (hl-line-mode)
       (goto-char (point-min))
       (while (not (equal (overlays-at (point)) nil))
 	(forward-char)))))
 
 (defun taskwarrior--sort-by-urgency (entries &optional asc)
+  ;; TODO: Figure out how to store a function in the cmp variable.
   (let ((cmp (if asc '< '>)))
     (sort entries #'(lambda (x y)
 		    (> (alist-get 'urgency x)
 		       (alist-get 'urgency y))))))
-
 
 (defun vector-to-list (vector)
   "Convert a vector to a list"
   (append vector nil))
 
 (defun taskwarrior-write-entries ()
-  (let ((entries (taskwarrior--sort-by-urgency (taskwarrior-export "1-1000"))))
+  (let ((entries (taskwarrior--sort-by-urgency taskwarrior-tasks)))
     (dolist (entry entries)
       (let ((id (alist-get 'id entry))
 	    (urgency (alist-get 'urgency entry))
