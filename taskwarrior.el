@@ -27,6 +27,7 @@
   (define-key taskwarrior-mode-map (kbd "n") 'next-line)
   (define-key taskwarrior-mode-map (kbd "j") 'next-line)
   (define-key taskwarrior-mode-map (kbd "q") 'quit-window)
+  (define-key taskwarrior-mode-map (kbd "u") 'taskwarrior-update-buffer)
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
   (define-key taskwarrior-mode-map (kbd "p") 'taskwarrior-change-project))
 
@@ -82,6 +83,7 @@ the front and focus it.  Otherwise, create one and load the data."
   (taskwarrior-update-buffer))
 
 (defun taskwarrior-update-buffer ()
+  (interactive)
   (let* ((buf (get-buffer-create "taskwarrior")))
     (progn
       (switch-to-buffer buf)
