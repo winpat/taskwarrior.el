@@ -118,5 +118,5 @@ the front and focus it.  Otherwise, create one and load the data."
 	    (project (alist-get 'project entry))
 	    (description (alist-get 'description entry)))
 	(insert (if project
-		    (format "%-2d (%05.2f) [%s] %s?\n" id urgency project description)
-		    (format "%-2d (%05.2f) %s?\n" id urgency description)))))))
+		    (format "%-2d (%05.2f) [%s] %s\n" id urgency project description)
+		    (format "%-2d (%05.2f) %s\n" id urgency description)))))))
