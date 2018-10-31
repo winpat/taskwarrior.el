@@ -27,6 +27,7 @@
   (define-key taskwarrior-mode-map (kbd "n") 'next-line)
   (define-key taskwarrior-mode-map (kbd "j") 'next-line)
   (define-key taskwarrior-mode-map (kbd "q") 'quit-window)
+  (define-key taskwarrior-mode-map (kbd "e") 'taskwarrior-change-description)
   (define-key taskwarrior-mode-map (kbd "u") 'taskwarrior-update-buffer)
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
   (define-key taskwarrior-mode-map (kbd "p") 'taskwarrior-change-project))
@@ -54,12 +55,27 @@
   "Load tasks into buffer-local variable"
   (setq-local taskwarrior-tasks (taskwarrior-export filter)))
 
-(defun taskwarrior-change-project (project)
+(defun taskwarrior-export-task (id)
+  (let ((task (vector-to-list
+	       (json-read-from-string
+		(taskwarrior--shell-command "export" (concat "id:" id))))))
+    (if (< (length task) 1)
+	(error "Seems like two task have the same id.")
+      (car task))))
+
+(defun taskwarrior-change-description ()
+  (interactive)
+  (save-excursion
+    (let* ((id (taskwarrior-id-at-point))
+	   (new-text (read-from-minibuffer "Description: " (alist-get 'description (taskwarrior-export-task id)))))
+      (taskwarrior--shell-command "modify" id new-text)
+      (taskwarrior-update-buffer))))
+
+(defun taskwarrior-changetaskwarrior-project (project)
   (interactive "sProject: ")
   (let ((filter (taskwarrior-id-at-point))
-	(command "modify")
 	(modifications (concat "project:" project)))
-    (taskwarrior--shell-command command filter modifications)))
+    (taskwarrior--shell-command "modify" filter modifications)))
 
 (defun taskwarrior-add (description)
   (interactive "sDescription: ")
