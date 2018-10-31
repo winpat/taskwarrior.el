@@ -67,15 +67,17 @@
   (interactive)
   (save-excursion
     (let* ((id (taskwarrior-id-at-point))
-	   (new-text (read-from-minibuffer "Description: " (alist-get 'description (taskwarrior-export-task id)))))
+	   (task  (taskwarrior-export-task id))
+	   (new-text (read-from-minibuffer "Description: " (alist-get 'description task))))
       (taskwarrior--shell-command "modify" id new-text)
       (taskwarrior-update-buffer))))
 
-(defun taskwarrior-changetaskwarrior-project (project)
+(defun taskwarrior-change-project (project)
   (interactive "sProject: ")
   (let ((filter (taskwarrior-id-at-point))
 	(modifications (concat "project:" project)))
-    (taskwarrior--shell-command "modify" filter modifications)))
+    (taskwarrior--shell-command "modify" filter modifications)
+    (taskwarrior-update-buffer)))
 
 (defun taskwarrior-add (description)
   (interactive "sDescription: ")
