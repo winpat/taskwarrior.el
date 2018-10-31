@@ -35,7 +35,7 @@
 (defun taskwarrior--display-task-details-in-echo-area ()
   (let* ((id (taskwarrior-id-at-point))
 	 (task (taskwarrior-export-task id))
-	 (due (alist-get 'due task)))
+	 (due (taskwarrior--parse-timestamp (alist-get 'due task))))
     (message "Due: %s" due)))
 
 (defun taskwarrior-previous-task ()
@@ -154,3 +154,14 @@ the front and focus it.  Otherwise, create one and load the data."
 	(insert (if project
 		    (format "%-2d (%05.2f) [%s] %s\n" id urgency project description)
 		    (format "%-2d (%05.2f) %s\n" id urgency description)))))))
+
+
+(defun taskwarrior--parse-timestamp (ts)
+  "Turn the taskwarrior timestamp into a readable format"
+  (let ((year (substring ts 0 4))
+	(month (substring ts 4 6))
+	(day (substring ts 6 8))
+	(hour (substring ts 9 11))
+	(minute (substring ts 11 13))
+  	(second (substring ts 13 15)))
+    (format "%s-%s-%s %s:%s:%s" year month day hour minute second)))
