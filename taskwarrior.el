@@ -79,21 +79,26 @@
 	(error "Seems like two task have the same id.")
       (car task))))
 
-(defun taskwarrior-change-description ()
-  (interactive)
-  (save-excursion
-    (let* ((id (taskwarrior-id-at-point))
-	   (task  (taskwarrior-export-task id))
-	   (new-text (read-from-minibuffer "Description: " (alist-get 'description task))))
-      (taskwarrior--shell-command "modify" id new-text)
-      (taskwarrior-update-buffer))))
-
-(defun taskwarrior-change-project (project)
-  (interactive "sProject: ")
-  (let ((filter (taskwarrior-id-at-point))
-	(modifications (concat "project:" project)))
-    (taskwarrior--shell-command "modify" filter modifications)
+(defun taskwarrior--change-attribute (attribute)
+  "Change an attribute of a task"
+  (let* ((prefix (concat (upcase attribute) ": "))
+	 (id (taskwarrior-id-at-point))
+	 (task  (taskwarrior-export-task id))
+	 (key (make-symbol attribute))
+	 (old-value (alist-get key task))
+	 (new-value (read-from-minibuffer prefix old-value)))
+    (taskwarrior--shell-command "modify" id new-value)
     (taskwarrior-update-buffer)))
+
+(defun taskwarrior-change-description ()
+  "Change the description of a task"
+  (interactive)
+  (taskwarrior--change-attribute "description"))
+
+(defun taskwarrior-change-project ()
+  "Change the project of a task"
+  (interactive)
+  (taskwarrior--change-attribute "project"))
 
 (defun taskwarrior-add (description)
   (interactive "sDescription: ")
