@@ -3,6 +3,8 @@
 ;; TODO: Implement modeline indicator for deadline and entries
 ;; TODO: Update buffer if command modifies the state
 ;; TODO: Extract "1-1000" id filter into variable
+;; TODO: Figure out the difference between assoc and assoc-string
+;;       (and why alist-get does not work with strings)
 
 (require 'json)
 
@@ -81,11 +83,10 @@
 
 (defun taskwarrior--change-attribute (attribute)
   "Change an attribute of a task"
-  (let* ((prefix (concat (upcase attribute) ": "))
+  (let* ((prefix (concat attribute ": "))
 	 (id (taskwarrior-id-at-point))
 	 (task  (taskwarrior-export-task id))
-	 (key (make-symbol attribute))
-	 (old-value (alist-get key task))
+	 (old-value (cdr (assoc-string attribute task)))
 	 (new-value (read-from-minibuffer prefix old-value)))
     (taskwarrior--shell-command "modify" id new-value)
     (taskwarrior-update-buffer)))
