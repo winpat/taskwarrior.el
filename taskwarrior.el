@@ -133,6 +133,7 @@ the front and focus it.  Otherwise, create one and load the data."
       (erase-buffer)
       (taskwarrior-load-tasks "1-1000")
       (taskwarrior-write-entries)
+      (toggle-read-only)
       (hl-line-mode)
       (goto-char (point-min))
       (while (not (equal (overlays-at (point)) nil))
