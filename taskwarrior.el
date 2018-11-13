@@ -105,7 +105,8 @@
 
 (defun taskwarrior-add (description)
   (interactive "sDescription: ")
-  (message (taskwarrior--shell-command "add" "" description)))
+  (message (taskwarrior--shell-command "add" "" description))
+  (taskwarrior-update-buffer))
 
 (defun taskwarrior-done ()
   "Mark current task as done."
@@ -113,7 +114,8 @@
   (let ((id (taskwarrior-id-at-point))
 	(confirmation (read-from-minibuffer "Done [y/n]?: ")))
     (when (string= confirmation "y")
-      (message (taskwarrior--shell-command "done" id)))))
+      (message (taskwarrior--shell-command "done" id))
+      (taskwarrior-update-buffer))))
 
 (defun taskwarrior-delete ()
   "Delete current task."
@@ -121,10 +123,10 @@
   (let ((id (taskwarrior-id-at-point))
 	(confirmation (read-from-minibuffer "Delete [y/n]?: ")))
     (when (string= confirmation "y")
-      (progn
-	(taskwarrior--shell-command "config" "" "confirmation off")
-	(message (taskwarrior--shell-command "delete" id))
-	(taskwarrior--shell-command "config" "" "confirmation on")))))
+      (taskwarrior--shell-command "config" "" "confirmation off")
+      (message (taskwarrior--shell-command "delete" id))
+      (taskwarrior--shell-command "config" "" "confirmation on")
+      (taskwarrior-update-buffer))))
 
 ;; Setup a major mode for taskwarrior
 ;;;###autoload
