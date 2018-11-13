@@ -32,6 +32,8 @@
   (define-key taskwarrior-mode-map (kbd "e") 'taskwarrior-change-description)
   (define-key taskwarrior-mode-map (kbd "u") 'taskwarrior-update-buffer)
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
+  (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-done)
+  (define-key taskwarrior-mode-map (kbd "D") 'taskwarrior-delete)
   (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-change-project))
 
 (defun taskwarrior--display-task-details-in-echo-area ()
@@ -103,7 +105,26 @@
 
 (defun taskwarrior-add (description)
   (interactive "sDescription: ")
-  (taskwarrior--shell-command "add" "" description))
+  (message (taskwarrior--shell-command "add" "" description)))
+
+(defun taskwarrior-done ()
+  "Mark current task as done."
+  (interactive)
+  (let ((id (taskwarrior-id-at-point))
+	(confirmation (read-from-minibuffer "Done [y/n]?: ")))
+    (when (string= confirmation "y")
+      (message (taskwarrior--shell-command "done" id)))))
+
+(defun taskwarrior-delete ()
+  "Delete current task."
+  (interactive)
+  (let ((id (taskwarrior-id-at-point))
+	(confirmation (read-from-minibuffer "Delete [y/n]?: ")))
+    (when (string= confirmation "y")
+      (progn
+	(taskwarrior--shell-command "config" "" "confirmation off")
+	(message (taskwarrior--shell-command "delete" id))
+	(taskwarrior--shell-command "config" "" "confirmation on")))))
 
 ;; Setup a major mode for taskwarrior
 ;;;###autoload
