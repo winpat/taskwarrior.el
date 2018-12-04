@@ -206,3 +206,6 @@ the front and focus it.  Otherwise, create one and load the data."
 	(minute (substring ts 11 13))
   	(second (substring ts 13 15)))
     (format "%s-%s-%s %s:%s:%s" year month day hour minute second)))
+
+
+(global-set-key (kbd "C-x t") 'taskwarrior)
