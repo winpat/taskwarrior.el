@@ -41,7 +41,8 @@
   (let* ((id (taskwarrior-id-at-point))
 	 (task (taskwarrior-export-task id))
 	 (due (taskwarrior--parse-timestamp (alist-get 'due task))))
-    (message "Due: %s" due)))
+    (when due
+      (message "Due: %s" due))))
 
 (defun taskwarrior-previous-task ()
   (interactive)
@@ -207,13 +208,17 @@ the front and focus it.  Otherwise, create one and load the data."
 
 (defun taskwarrior--parse-timestamp (ts)
   "Turn the taskwarrior timestamp into a readable format"
-  (let ((year (substring ts 0 4))
-	(month (substring ts 4 6))
-	(day (substring ts 6 8))
-	(hour (substring ts 9 11))
-	(minute (substring ts 11 13))
-  	(second (substring ts 13 15)))
-    (format "%s-%s-%s %s:%s:%s" year month day hour minute second)))
+  (if (not ts)
+      ts
+    (let ((year (substring ts 0 4))
+	  (month (substring ts 4 6))
+	  (day (substring ts 6 8))
+	  (hour (substring ts 9 11))
+	  (minute (substring ts 11 13))
+  	  (second (substring ts 13 15)))
+      (format "%s-%s-%s %s:%s:%s" year month day hour minute second))))
 
 
 (global-set-key (kbd "C-x t") 'taskwarrior)
+(taskwarrior--set-filter "project:pro5")
+(message (car taskwarrior-active-filters))
