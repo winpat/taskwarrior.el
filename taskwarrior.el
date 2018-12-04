@@ -12,6 +12,8 @@
 
 (defconst taskwarrior-mutating-commands '("add" "modify"))
 
+(defvar taskwarrior-active-filters '() 'taskwarrior-active-filters)
+
 (defvar taskwarrior-description 'taskwarrior-description
   "Taskwarrior mode face used for tasks with a priority of C.")
 
@@ -34,6 +36,7 @@
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
   (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-done)
   (define-key taskwarrior-mode-map (kbd "D") 'taskwarrior-delete)
+  (define-key taskwarrior-mode-map (kbd "f") 'taskwarrior-filter)
   (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-change-project))
 
 (defun taskwarrior--display-task-details-in-echo-area ()
@@ -56,6 +59,14 @@
   (let ((line (thing-at-point 'line t)))
     (string-match "^[0-9]*" line)
     (match-string 0 line)))
+
+(defun taskwarrior-filter ()
+  (interactive)
+  (let* ((current-filter-string (mapconcat 'identity taskwarrior-active-filters " "))
+	 (new-filter (read-from-minibuffer "Filter: " current-filter-string)))
+    (taskwarrior-update-buffer new-filter)))
+
+
 
 (defun taskwarrior--shell-command (command &optional filter modifications miscellaneous)
   (shell-command-to-string
@@ -145,7 +156,7 @@ the front and focus it.  Otherwise, create one and load the data."
   (interactive)
   (taskwarrior-update-buffer))
 
-(defun taskwarrior-update-buffer ()
+(defun taskwarrior-update-buffer (&optional filter)
   (interactive)
   (let* ((buf (get-buffer-create "taskwarrior")))
     (progn
@@ -155,7 +166,7 @@ the front and focus it.  Otherwise, create one and load the data."
       (goto-char (point-min))
       (toggle-read-only)
       (erase-buffer)
-      (taskwarrior-load-tasks "1-1000")
+      (taskwarrior-load-tasks (concat "1-1000 " filter))
       (taskwarrior-write-entries)
       (toggle-read-only)
       (hl-line-mode)
