@@ -12,8 +12,6 @@
 
 (defconst taskwarrior-mutating-commands '("add" "modify"))
 
-(defvar taskwarrior-active-filters '() 'taskwarrior-active-filters)
-
 (defvar taskwarrior-description 'taskwarrior-description
   "Taskwarrior mode face used for tasks with a priority of C.")
 
@@ -60,13 +58,23 @@
     (string-match "^[0-9]*" line)
     (match-string 0 line)))
 
+(defun taskwarrior--get-filter-as-string ()
+  (if (local-variable-p 'taskwarrior-active-filters)
+      (mapconcat 'identity taskwarrior-active-filters " ")
+    "")
+  )
+
+(defun taskwarrior--set-filter (filter)
+  (cond ((stringp filter) (setq-local taskwarrior-active-filters (split-string filter " ")))
+	((listp filter) (setq-local taskwarrior-active-filters filter))
+	(t (error "Filter did not match any supported type."))))
+
 (defun taskwarrior-filter ()
   (interactive)
-  (let* ((current-filter-string (mapconcat 'identity taskwarrior-active-filters " "))
-	 (new-filter (read-from-minibuffer "Filter: " current-filter-string)))
-    (taskwarrior-update-buffer new-filter)))
-
-
+  (let ((new-filter (read-from-minibuffer "Filter: " (taskwarrior--get-filter-as-string))))
+    (progn
+      (taskwarrior--set-filter new-filter)
+      (taskwarrior-update-buffer new-filter))))
 
 (defun taskwarrior--shell-command (command &optional filter modifications miscellaneous)
   (shell-command-to-string
