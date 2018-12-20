@@ -5,10 +5,13 @@
 ;; TODO: Extract "1-1000" id filter into variable
 ;; TODO: Figure out the difference between assoc and assoc-string
 ;;       (and why alist-get does not work with strings)
+;; TODO: Restore position after taskwarrior-update-buffer is called
 
 (require 'json)
 
 (defgroup taskwarrior nil "An emacs frontend to taskwarrior.")
+
+(defvar taskwarrior-buffer-name "*taskwarrior*")
 
 (defconst taskwarrior-mutating-commands '("add" "modify"))
 
@@ -78,6 +81,7 @@
       (taskwarrior-update-buffer new-filter))))
 
 (defun taskwarrior--shell-command (command &optional filter modifications miscellaneous)
+  ;; Taskwarrior
   (shell-command-to-string
    (format "task %s %s %s %s"
 	   (or filter "")
@@ -126,7 +130,8 @@
 (defun taskwarrior-add (description)
   (interactive "sDescription: ")
   (message (taskwarrior--shell-command "add" "" description))
-  (taskwarrior-update-buffer))
+  (when (eq (buffer-name) taskwarrior-buffer-name)
+    (taskwarrior-update-buffer)))
 
 (defun taskwarrior-done ()
   "Mark current task as done."
