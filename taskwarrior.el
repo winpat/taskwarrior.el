@@ -19,9 +19,9 @@
   "Taskwarrior mode face used for tasks with a priority of C.")
 
 (setq taskwarrior-highlight-regexps
-      `(("^[0-9]*" . font-lock-variable-name-face)
-	("([0-9.]*?)" . font-lock-builtin-face)
-	("\\[.*\\]" . font-lock-preprocessor-face)
+      `(("^[0-9]*"      . font-lock-variable-name-face)
+	("([0-9.]*?)"   . font-lock-builtin-face)
+	("\\[.*\\]"     . font-lock-preprocessor-face)
 	("[:space:].*:" . font-lock-function-name-face)))
 
 (defvar taskwarrior-mode-map nil "Keymap for `taskwarrior-mode'")
