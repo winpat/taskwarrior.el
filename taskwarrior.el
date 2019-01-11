@@ -167,25 +167,28 @@
   "Open the taskwarrior buffer.  If one already exists, bring it to
 the front and focus it.  Otherwise, create one and load the data."
   (interactive)
-  (taskwarrior-update-buffer))
+  (let* ((buf (get-buffer-create taskwarrior-buffer-name)))
+      (progn
+	(switch-to-buffer buf)
+	(taskwarrior-update-buffer)
+	(setq font-lock-defaults '(taskwarrior-highlight-regexps))
+	(taskwarrior-mode)
+	(hl-line-mode))))
 
 (defun taskwarrior-update-buffer (&optional filter)
   (interactive)
-  (let* ((buf (get-buffer-create "taskwarrior")))
+  (let ((filter (taskwarrior--get-filter-as-string)))
     (progn
-      (switch-to-buffer buf)
-      (taskwarrior-mode)
-      (setq font-lock-defaults '(taskwarrior-highlight-regexps))
       (goto-char (point-min))
-      (toggle-read-only)
+      (read-only-mode -1)
       (erase-buffer)
       (taskwarrior-load-tasks (concat "1-1000 " filter))
       (taskwarrior-write-entries)
-      (toggle-read-only)
-      (hl-line-mode)
+      (read-only-mode t)
       (goto-char (point-min))
       (while (not (equal (overlays-at (point)) nil))
-	(forward-char)))))
+	(forward-char))
+      (taskwarrior--set-filter filter))))
 
 (defun taskwarrior--sort-by-urgency (entries &optional asc)
   ;; TODO: Figure out how to store a function in the cmp variable.
