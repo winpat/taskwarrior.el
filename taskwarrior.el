@@ -65,8 +65,7 @@
 (defun taskwarrior--get-filter-as-string ()
   (if (local-variable-p 'taskwarrior-active-filters)
       (mapconcat 'identity taskwarrior-active-filters " ")
-    "")
-  )
+    ""))
 
 (defun taskwarrior--set-filter (filter)
   (cond ((stringp filter) (setq-local taskwarrior-active-filters (split-string filter " ")))
