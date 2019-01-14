@@ -87,13 +87,14 @@
       (taskwarrior-update-buffer new-filter))))
 
 (defun taskwarrior--shell-command (command &optional filter modifications miscellaneous)
-  ;; Taskwarrior
-  (shell-command-to-string
-   (format "task %s %s %s %s"
-	   (or filter "")
-	   command
-	   (or modifications "")
-	   (or miscellaneous ""))))
+  (let ((cmd (format "task %s %s %s %s"
+		     (or filter "")
+		     command
+		     (or modifications "")
+		     (or miscellaneous ""))))
+    (progn
+      (message cmd)
+      (shell-command-to-string cmd))))
 
 (defun taskwarrior-export (filter)
   "Export taskwarrior entries as JSON"
