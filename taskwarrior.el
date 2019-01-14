@@ -38,6 +38,7 @@
   (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-done)
   (define-key taskwarrior-mode-map (kbd "D") 'taskwarrior-delete)
   (define-key taskwarrior-mode-map (kbd "f") 'taskwarrior-filter)
+  (define-key taskwarrior-mode-map (kbd "r") 'taskwarrior-reset-filter)
   (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-change-project))
 
 (defun taskwarrior--display-task-details-in-echo-area ()
@@ -71,6 +72,12 @@
   (cond ((stringp filter) (setq-local taskwarrior-active-filters (split-string filter " ")))
 	((listp filter) (setq-local taskwarrior-active-filters filter))
 	(t (error "Filter did not match any supported type."))))
+
+(defun taskwarrior-reset-filter ()
+  (interactive)
+  (progn
+    (taskwarrior--set-filter "")
+    (taskwarrior-update-buffer "")))
 
 (defun taskwarrior-filter ()
   (interactive)
