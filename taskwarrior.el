@@ -116,12 +116,12 @@
 
 (defun taskwarrior--change-attribute (attribute)
   "Change an attribute of a task"
-  (let* ((prefix (concat attribute ": "))
+  (let* ((prefix (concat attribute ":"))
 	 (id (taskwarrior-id-at-point))
 	 (task  (taskwarrior-export-task id))
 	 (old-value (cdr (assoc-string attribute task)))
-	 (new-value (read-from-minibuffer prefix old-value)))
-    (taskwarrior--shell-command "modify" id new-value)
+	 (new-value (read-from-minibuffer (concat prefix " ") old-value)))
+    (taskwarrior--shell-command "modify" id (concat prefix new-value))
     (taskwarrior-update-buffer)))
 
 (defun taskwarrior-change-description ()
