@@ -225,10 +225,10 @@ the front and focus it.  Otherwise, create one and load the data."
   "Turn the taskwarrior timestamp into a readable format"
   (if (not ts)
       ts
-    (let ((year (substring ts 0 4))
-	  (month (substring ts 4 6))
-	  (day (substring ts 6 8))
-	  (hour (substring ts 9 11))
+    (let ((year   (substring ts 0 4))
+	  (month  (substring ts 4 6))
+	  (day    (substring ts 6 8))
+	  (hour   (substring ts 9 11))
 	  (minute (substring ts 11 13))
   	  (second (substring ts 13 15)))
       (format "%s-%s-%s %s:%s:%s" year month day hour minute second))))
