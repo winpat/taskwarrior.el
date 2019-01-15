@@ -209,16 +209,27 @@ the front and focus it.  Otherwise, create one and load the data."
   "Convert a vector to a list"
   (append vector nil))
 
+
+(defun taskwarrior--get-max-length (key lst)
+  "Get the length of the longst element in a list"
+  (apply 'max
+	 (-map 'length
+	       (-map (-partial 'alist-get key) lst))))
+
 (defun taskwarrior-write-entries ()
   (let ((entries (taskwarrior--sort-by-urgency taskwarrior-tasks)))
     (dolist (entry entries)
-      (let ((id (alist-get 'id entry))
-	    (urgency (alist-get 'urgency entry))
-	    (project (alist-get 'project entry))
-	    (description (alist-get 'description entry)))
+      (let* ((id                 (alist-get 'id entry))
+	     (urgency            (alist-get 'urgency entry))
+	     (project            (alist-get 'project entry))
+	     (project-max-length (taskwarrior--get-max-length 'project entries))
+	     (project-spacing    (- project-max-length (length project)))
+	     (description        (alist-get 'description entry)))
 	(insert (if project
-		    (format "%-2d (%05.2f) [%s] %s\n" id urgency project description)
-		    (format "%-2d (%05.2f) %s\n" id urgency description)))))))
+		    (format (concat "%-2d (%05.2f) [%s]%-" (number-to-string project-spacing) "s %s\n") id urgency project "" description)
+		  (format
+		   (concat "%-2d (%05.2f) %-" (number-to-string (+ 3 project-max-length)) "s%s\n")
+		   id urgency "" description)))))))
 
 
 (defun taskwarrior--parse-timestamp (ts)
