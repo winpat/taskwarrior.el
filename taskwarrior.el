@@ -86,12 +86,18 @@
       (taskwarrior--set-filter new-filter)
       (taskwarrior-update-buffer new-filter))))
 
-(defun taskwarrior--shell-command (command &optional filter modifications miscellaneous)
-  (let ((cmd (format "task %s %s %s %s"
-		     (or filter "")
-		     command
-		     (or modifications "")
-		     (or miscellaneous ""))))
+
+
+(shell-command-to-string "echo yes | task 34 delete")
+
+(defun taskwarrior--shell-command (command &optional filter modifications miscellaneous confirm)
+  (let* ((confirmation (if confirm (concat "echo " confirm " |") ""))
+	 (cmd (format "%s task %s %s %s %s"
+		      (or confirmation "")
+		      (or filter "")
+		      (or command "")
+		      (or modifications "")
+		      (or miscellaneous ""))))
     (progn
       (message cmd)
       (shell-command-to-string cmd))))
@@ -155,9 +161,7 @@
   (let ((id (taskwarrior-id-at-point))
 	(confirmation (read-from-minibuffer "Delete [y/n]?: ")))
     (when (string= confirmation "y")
-      (taskwarrior--shell-command "config" "" "confirmation off")
-      (message (taskwarrior--shell-command "delete" id))
-      (taskwarrior--shell-command "config" "" "confirmation on")
+      (message (taskwarrior--shell-command "delete" id "" "" "yes"))
       (taskwarrior-update-buffer))))
 
 ;; Setup a major mode for taskwarrior
