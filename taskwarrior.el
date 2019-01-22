@@ -33,7 +33,7 @@
   (define-key taskwarrior-mode-map (kbd "j") 'taskwarrior-next-task)
   (define-key taskwarrior-mode-map (kbd "q") 'quit-window)
   (define-key taskwarrior-mode-map (kbd "e") 'taskwarrior-change-description)
-  (define-key taskwarrior-mode-map (kbd "u") 'taskwarrior-update-buffer)
+  (define-key taskwarrior-mode-map (kbd "g") 'taskwarrior-update-buffer)
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
   (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-done)
   (define-key taskwarrior-mode-map (kbd "D") 'taskwarrior-delete)
