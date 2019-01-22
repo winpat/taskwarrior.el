@@ -37,6 +37,8 @@
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
   (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-done)
   (define-key taskwarrior-mode-map (kbd "D") 'taskwarrior-delete)
+  (define-key taskwarrior-mode-map (kbd "m") 'taskwarrior-mark-task)
+  (define-key taskwarrior-mode-map (kbd "u") 'taskwarrior-unmark-task)
   (define-key taskwarrior-mode-map (kbd "f") 'taskwarrior-filter)
   (define-key taskwarrior-mode-map (kbd "r") 'taskwarrior-reset-filter)
   (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-change-project))
@@ -57,6 +59,19 @@
   (interactive)
   (next-line)
   (taskwarrior--display-task-details-in-echo-area))
+
+(defun taskwarrior-unmark-task ()
+  (interactive)
+  (let ((id (taskwarrior-id-at-point)))
+    (if (local-variable-p 'taskwarrior-marks)
+	(setq-local taskwarrior-marks (remove id taskwarrior-marks)))))
+
+(defun taskwarrior-mark-task ()
+  (interactive)
+  (let ((id (taskwarrior-id-at-point)))
+    (if (local-variable-p 'taskwarrior-marks)
+	(setq-local taskwarrior-marks (delete-dups (cons id taskwarrior-marks)))
+      (setq-local taskwarrior-marks (list id)))))
 
 (defun taskwarrior-id-at-point ()
   (let ((line (thing-at-point 'line t)))
