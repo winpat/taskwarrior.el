@@ -41,6 +41,7 @@
   (define-key taskwarrior-mode-map (kbd "u") 'taskwarrior-unmark-task)
   (define-key taskwarrior-mode-map (kbd "f") 'taskwarrior-filter)
   (define-key taskwarrior-mode-map (kbd "r") 'taskwarrior-reset-filter)
+  (define-key taskwarrior-mode-map (kbd "RET") 'taskwarrior-info)
   (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-change-project))
 
 (defun taskwarrior--display-task-details-in-echo-area ()
@@ -72,6 +73,14 @@
     (if (local-variable-p 'taskwarrior-marks)
 	(setq-local taskwarrior-marks (delete-dups (cons id taskwarrior-marks)))
       (setq-local taskwarrior-marks (list id)))))
+
+(defun taskwarrior-info ()
+  (interactive)
+  (let* ((id (taskwarrior-id-at-point))
+	 (buf (get-buffer-create "*taskwarrior info*")))
+    (progn
+      (switch-to-buffer-other-window buf)
+      (insert (taskwarrior--shell-command "info" "" id)))))
 
 (defun taskwarrior-id-at-point ()
   (let ((line (thing-at-point 'line t)))
