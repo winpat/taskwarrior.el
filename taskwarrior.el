@@ -165,8 +165,8 @@
   "Mark current task as done."
   (interactive)
   (let ((id (taskwarrior-id-at-point))
-	(confirmation (read-from-minibuffer "Done [y/n]?: ")))
-    (when (string= confirmation "y")
+	(confirmation (yes-or-no-p "Done?")))
+    (when confirmation
       (taskwarrior--shell-command "done" id)
       (taskwarrior-update-buffer))))
 
@@ -174,8 +174,8 @@
   "Delete current task."
   (interactive)
   (let ((id (taskwarrior-id-at-point))
-	(confirmation (read-from-minibuffer "Delete [y/n]?: ")))
-    (when (string= confirmation "y")
+	(confirmation (yes-or-no-p "Delete?")))
+    (when confirmation
       (taskwarrior--shell-command "delete" id "" "" "yes")
       (taskwarrior-update-buffer))))
 
