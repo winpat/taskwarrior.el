@@ -142,8 +142,7 @@
 	 (task  (taskwarrior-export-task id))
 	 (old-value (cdr (assoc-string attribute task)))
 	 (new-value (read-from-minibuffer (concat prefix " ") old-value)))
-    (taskwarrior--shell-command "modify" id (concat prefix new-value))
-    (taskwarrior-update-buffer)))
+    (taskwarrior--mutable-shell-command "modify" id (concat prefix new-value))))
 
 (defun taskwarrior-change-description ()
   "Change the description of a task"
