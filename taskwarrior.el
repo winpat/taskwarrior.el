@@ -101,10 +101,6 @@
       (taskwarrior--set-filter new-filter)
       (taskwarrior-update-buffer new-filter))))
 
-
-
-(shell-command-to-string "echo yes | task 34 delete")
-
 (defun taskwarrior--shell-command (command &optional filter modifications miscellaneous confirm)
   (let* ((confirmation (if confirm (concat "echo " confirm " |") ""))
 	 (cmd (format "%s task %s %s %s %s"
@@ -268,5 +264,3 @@ the front and focus it.  Otherwise, create one and load the data."
 
 
 (global-set-key (kbd "C-x t") 'taskwarrior)
-(taskwarrior--set-filter "project:pro5")
-(message (car taskwarrior-active-filters))
