@@ -33,6 +33,7 @@
   (define-key taskwarrior-mode-map (kbd "j") 'taskwarrior-next-task)
   (define-key taskwarrior-mode-map (kbd "q") 'quit-window)
   (define-key taskwarrior-mode-map (kbd "e") 'taskwarrior-change-description)
+  (define-key taskwarrior-mode-map (kbd "U") 'taskwarrior-change-priority)
   (define-key taskwarrior-mode-map (kbd "g") 'taskwarrior-update-buffer)
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
   (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-done)
@@ -145,6 +146,11 @@
   "Change the description of a task"
   (interactive)
   (taskwarrior--change-attribute "description"))
+
+(defun taskwarrior-change-priority ()
+  "Change the priority of a task"
+  (interactive)
+  (taskwarrior--change-attribute "priority"))
 
 (defun taskwarrior-change-project ()
   "Change the project of a task"
