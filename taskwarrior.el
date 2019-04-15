@@ -33,6 +33,7 @@
   (define-key taskwarrior-mode-map (kbd "j") 'taskwarrior-next-task)
   (define-key taskwarrior-mode-map (kbd "q") 'quit-window)
   (define-key taskwarrior-mode-map (kbd "e") 'taskwarrior-change-description)
+  (define-key taskwarrior-mode-map (kbd "U") 'taskwarrior-change-priority)
   (define-key taskwarrior-mode-map (kbd "g") 'taskwarrior-update-buffer)
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
   (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-done)
@@ -110,10 +111,6 @@
       (taskwarrior--set-filter new-filter)
       (taskwarrior-update-buffer new-filter))))
 
-
-
-(shell-command-to-string "echo yes | task 34 delete")
-
 (defun taskwarrior--shell-command (command &optional filter modifications miscellaneous confirm)
   (let* ((confirmation (if confirm (concat "echo " confirm " |") ""))
 	 (cmd (format "%s task %s %s %s %s"
@@ -150,14 +147,19 @@
 	 (id (taskwarrior-id-at-point))
 	 (task  (taskwarrior-export-task id))
 	 (old-value (cdr (assoc-string attribute task)))
-	 (new-value (read-from-minibuffer (concat prefix " ") old-value)))
-    (taskwarrior--shell-command "modify" id (concat prefix new-value))
-    (taskwarrior-update-buffer)))
+	 (new-value (read-from-minibuffer (concat prefix " ") old-value))
+         (quoted-value (concat "\"" new-value "\"")))
+    (taskwarrior--mutable-shell-command "modify" id (concat prefix quoted-value))))
 
 (defun taskwarrior-change-description ()
   "Change the description of a task"
   (interactive)
   (taskwarrior--change-attribute "description"))
+
+(defun taskwarrior-change-priority ()
+  "Change the priority of a task"
+  (interactive)
+  (taskwarrior--change-attribute "priority"))
 
 (defun taskwarrior-change-project ()
   "Change the project of a task"
@@ -278,5 +280,3 @@ the front and focus it.  Otherwise, create one and load the data."
 
 
 (global-set-key (kbd "C-x t") 'taskwarrior)
-(taskwarrior--set-filter "project:pro5")
-(message (car taskwarrior-active-filters))
