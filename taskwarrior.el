@@ -19,7 +19,8 @@
   "Taskwarrior mode face used for tasks with a priority of C.")
 
 (setq taskwarrior-highlight-regexps
-      `(("^[0-9]*"      . font-lock-variable-name-face)
+      `(("^\\*.*$"      . font-lock-variable-name-face)
+	("^ [0-9]*"     . font-lock-variable-name-face)
 	("([0-9.]*?)"   . font-lock-builtin-face)
 	("\\[.*\\]"     . font-lock-preprocessor-face)
 	("[:space:].*:" . font-lock-function-name-face)))
@@ -44,6 +45,13 @@
   (define-key taskwarrior-mode-map (kbd "r") 'taskwarrior-reset-filter)
   (define-key taskwarrior-mode-map (kbd "RET") 'taskwarrior-info)
   (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-change-project))
+
+
+(defun test ()
+  (interactive)
+  (let ((line (thing-at-point 'line t)))
+    (string-match (rx "* 1"))
+    (string-trim-left (match-string 0 line))))
 
 (defun taskwarrior--display-task-details-in-echo-area ()
   (let* ((id (taskwarrior-id-at-point))
@@ -71,9 +79,16 @@
 (defun taskwarrior-mark-task ()
   (interactive)
   (let ((id (taskwarrior-id-at-point)))
-    (if (local-variable-p 'taskwarrior-marks)
-	(setq-local taskwarrior-marks (delete-dups (cons id taskwarrior-marks)))
-      (setq-local taskwarrior-marks (list id)))))
+    (progn
+      (if (local-variable-p 'taskwarrior-marks)
+	  (setq-local taskwarrior-marks (delete-dups (cons id taskwarrior-marks)))
+	(setq-local taskwarrior-marks (list id))))
+    (save-excursion
+      (read-only-mode -1)
+      (beginning-of-line)
+      (insert "*")
+      (read-only-mode 1))))
+
 
 (defun taskwarrior-info ()
   (interactive)
@@ -85,8 +100,8 @@
 
 (defun taskwarrior-id-at-point ()
   (let ((line (thing-at-point 'line t)))
-    (string-match "^[0-9]*" line)
-    (match-string 0 line)))
+    (string-match "^ [0-9]*" line)
+    (string-trim-left (match-string 0 line))))
 
 (defun taskwarrior--get-filter-as-string ()
   (if (local-variable-p 'taskwarrior-active-filters)
@@ -221,7 +236,6 @@ the front and focus it.  Otherwise, create one and load the data."
   (interactive)
   (let ((filter (taskwarrior--get-filter-as-string)))
     (progn
-      (goto-char (point-min))
       (read-only-mode -1)
       (erase-buffer)
       (taskwarrior-load-tasks (concat "1-1000 " filter))
@@ -260,7 +274,7 @@ the front and focus it.  Otherwise, create one and load the data."
 	     (project-spacing    (- project-max-length (length project)))
 	     (description        (alist-get 'description entry)))
 	(insert (if project
-		    (format (concat "%-2d (%05.2f) [%s]%-" (number-to-string project-spacing) "s %s\n") id urgency project "" description)
+		    (format (concat " %-2d (%05.2f) [%s]%-" (number-to-string project-spacing) "s %s\n") id urgency project "" description)
 		  (format
 		   (concat "%-2d (%05.2f) %-" (number-to-string (+ 3 project-max-length)) "s%s\n")
 		   id urgency "" description)))))))
