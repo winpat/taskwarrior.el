@@ -19,11 +19,12 @@
   "Taskwarrior mode face used for tasks with a priority of C.")
 
 (setq taskwarrior-highlight-regexps
-      `(("^\\*.*$"      . font-lock-variable-name-face)
-	("^ [0-9]*"     . font-lock-variable-name-face)
-	("([0-9.]*?)"   . font-lock-builtin-face)
-	("\\[.*\\]"     . font-lock-preprocessor-face)
-	("[:space:].*:" . font-lock-function-name-face)))
+      `(("^\\*.*$"             . font-lock-variable-name-face)
+	("^ [0-9]*"            . font-lock-variable-name-face)
+	("([0-9.]*?)"          . font-lock-builtin-face)
+	("\\+[a-zA-Z0-9\\-_]+" . font-lock-doc-face)
+	("\\[.*\\]"            . font-lock-preprocessor-face)
+	("[:space:].*:"        . font-lock-function-name-face)))
 
 (defvar taskwarrior-mode-map nil "Keymap for `taskwarrior-mode'")
 (progn
@@ -267,18 +268,18 @@ the front and focus it.  Otherwise, create one and load the data."
 (defun taskwarrior-write-entries ()
   (let ((entries (taskwarrior--sort-by-urgency taskwarrior-tasks)))
     (dolist (entry entries)
-      (let* ((id                 (alist-get 'id entry))
-	     (urgency            (alist-get 'urgency entry))
-	     (project            (alist-get 'project entry))
-	     (project-max-length (taskwarrior--get-max-length 'project entries))
-	     (project-spacing    (- project-max-length (length project)))
+      (let* ((id                 (format "%-2d" (alist-get 'id entry)))
+	     (urgency            (format "(%05.2f)" (alist-get 'urgency entry)))
+	     (tags               (format "%s" (taskwarrior--concat-tag-list (alist-get 'tags entry))))
+	     (project            (format "[%s]" (alist-get 'project entry)))
+	     ;; (project-max-length (taskwarrior--get-max-length 'project entries))
+	     ;; (project-spacing    (- project-max-length (length project)))
 	     (description        (alist-get 'description entry)))
-	(insert (if project
-		    (format (concat " %-2d (%05.2f) [%s]%-" (number-to-string project-spacing) "s %s\n") id urgency project "" description)
-		  (format
-		   (concat " %-2d (%05.2f) %-" (number-to-string (+ 3 project-max-length)) "s%s\n")
-		   id urgency "" description)))))))
+	  (insert (concat " " id " " urgency " " project " " tags " " description "\n"))))))
 
+
+(defun taskwarrior--concat-tag-list (tags)
+  (mapconcat (function (lambda (x) (format "+%s" x))) (vector-to-list tags) " "))
 
 (defun taskwarrior--parse-timestamp (ts)
   "Turn the taskwarrior timestamp into a readable format"
