@@ -276,7 +276,7 @@ the front and focus it.  Otherwise, create one and load the data."
 	(insert (if project
 		    (format (concat " %-2d (%05.2f) [%s]%-" (number-to-string project-spacing) "s %s\n") id urgency project "" description)
 		  (format
-		   (concat "%-2d (%05.2f) %-" (number-to-string (+ 3 project-max-length)) "s%s\n")
+		   (concat " %-2d (%05.2f) %-" (number-to-string (+ 3 project-max-length)) "s%s\n")
 		   id urgency "" description)))))))
 
 
