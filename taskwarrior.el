@@ -18,13 +18,52 @@
 (defvar taskwarrior-description 'taskwarrior-description
   "Taskwarrior mode face used for tasks with a priority of C.")
 
+(defface taskwarrior-priority-high-face
+  '((((min-colors 88) (class color))
+     (:foreground "red1"))
+    (((class color))
+     (:foreground "red"))
+    (t (:weight bold :underline t)))
+  "Face used for H priority label."
+  :group 'taskwarrior-faces)
+
+(defvar taskwarrior-priority-high-face  'taskwarrior-priority-high-face
+  "Face name to use for high priority label.")
+
+(defface taskwarrior-priority-medium-face
+  '((((min-colors 88) (class color))
+     (:foreground "orange1"))
+    (((class color))
+     (:foreground "orange"))
+    (t (:weight bold :underline t)))
+  "Face used for M priority label."
+  :group 'taskwarrior-faces)
+
+(defvar taskwarrior-priority-medium-face  'taskwarrior-priority-medium-face
+  "Face name to use for medium priority label.")
+
+(defface taskwarrior-priority-low-face
+  '((((min-colors 88) (class color))
+     (:foreground "grey1"))
+    (((class color))
+     (:foreground "grey"))
+    (t (:weight bold :underline t)))
+  "Face used for L priority label."
+  :group 'taskwarrior-faces)
+
+(defvar taskwarrior-priority-low-face  'taskwarrior-priority-low-face
+  "Face name to use for low priority label.")
+
 (setq taskwarrior-highlight-regexps
       `(("^\\*.*$"             . font-lock-variable-name-face)
 	("^ [0-9]*"            . font-lock-variable-name-face)
 	("([0-9.]*?)"          . font-lock-builtin-face)
 	("\\+[a-zA-Z0-9\\-_]+" . font-lock-doc-face)
 	("\\[.*\\]"            . font-lock-preprocessor-face)
-	("[:space:].*:"        . font-lock-function-name-face)))
+	("[:space:].*:"        . font-lock-function-name-face)
+	(" L "             . taskwarrior-priority-low-face)
+	(" M "             . taskwarrior-priority-medium-face)
+	(" H "             . taskwarrior-priority-high-face)))
 
 (defvar taskwarrior-mode-map nil "Keymap for `taskwarrior-mode'")
 (progn
