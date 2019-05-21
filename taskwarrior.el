@@ -97,9 +97,10 @@
 (defun taskwarrior--display-task-details-in-echo-area ()
   (let* ((id (taskwarrior-id-at-point))
 	 (task (taskwarrior-export-task id))
+	 (annotation-count (length (alist-get 'annotations task)))
 	 (due (taskwarrior--parse-timestamp (alist-get 'due task))))
     (when due
-      (message "Due: %s" due))))
+      (message "Due: %s | %i Annotations" due annotation-count))))
 
 (defun taskwarrior-previous-task ()
   (interactive)
