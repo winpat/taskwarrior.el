@@ -78,6 +78,7 @@
   (define-key taskwarrior-mode-map (kbd "g") 'taskwarrior-update-buffer)
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
   (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-done)
+  (define-key taskwarrior-mode-map (kbd "o") 'taskwarrior-open-annotation)
   (define-key taskwarrior-mode-map (kbd "D") 'taskwarrior-delete)
   (define-key taskwarrior-mode-map (kbd "m") 'taskwarrior-mark-task)
   (define-key taskwarrior-mode-map (kbd "u") 'taskwarrior-unmark-task)
@@ -131,6 +132,13 @@
       (insert "*")
       (read-only-mode 1))))
 
+(defun taskwarrior-open-annotation ()
+  (interactive)
+  (let* ((id (taskwarrior-id-at-point))
+	 (task  (taskwarrior-export-task id))
+	 (annotations (-map (lambda (x) (alist-get 'description x)) (vector-to-list (alist-get 'annotations task))))
+	 (choice (completing-read "Tags: " annotations)))
+    (org-open-link-from-string choice)))
 
 (defun taskwarrior-info ()
   (interactive)
