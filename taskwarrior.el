@@ -44,6 +44,7 @@
   (define-key taskwarrior-mode-map (kbd "u") 'taskwarrior-unmark-task)
   (define-key taskwarrior-mode-map (kbd "f") 'taskwarrior-filter)
   (define-key taskwarrior-mode-map (kbd "r") 'taskwarrior-reset-filter)
+  (define-key taskwarrior-mode-map (kbd "t") 'taskwarrior-edit-tags)
   (define-key taskwarrior-mode-map (kbd "RET") 'taskwarrior-info)
   (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-change-project))
 
@@ -166,6 +167,22 @@
 	 (new-value (read-from-minibuffer (concat prefix " ") old-value))
          (quoted-value (concat "\"" new-value "\"")))
     (taskwarrior--mutable-shell-command "modify" id (concat prefix quoted-value))))
+
+(defun taskwarrior-edit-tags ()
+  (interactive)
+  (let* ((id (taskwarrior-id-at-point))
+	 (task (taskwarrior-export-task id))
+	 (options (split-string (shell-command-to-string "task _tags") "\n"))
+	 (old (vector-to-list (alist-get 'tags task)))
+	 (current-tags (mapconcat 'identity old " "))
+	 (new (split-string (completing-read "Tags: " options nil nil current-tags) " "))
+	 (added-tags (mapconcat
+		      (function (lambda (x) (concat "+" x)))
+		      (set-difference new old :test #'string-equal) " "))
+	 (removed-tags (mapconcat
+			(function (lambda (x) (concat "-" x)))
+			(set-difference old new :test #'string-equal) " ")))
+    (taskwarrior--mutable-shell-command "modify" id (concat added-tags " " removed-tags))))
 
 (defun taskwarrior-change-description ()
   "Change the description of a task"
