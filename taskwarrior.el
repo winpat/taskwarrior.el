@@ -287,12 +287,13 @@ the front and focus it.  Otherwise, create one and load the data."
     (dolist (entry entries)
       (let* ((id                 (format "%-2d" (alist-get 'id entry)))
 	     (urgency            (format "(%05.2f)" (alist-get 'urgency entry)))
-	     (tags               (format "%s" (taskwarrior--concat-tag-list (alist-get 'tags entry))))
+	     (priority           (format "%s" (or (alist-get 'priority entry) " ")))
 	     (project            (format "[%s]" (alist-get 'project entry)))
+	     (tags               (format "%s" (taskwarrior--concat-tag-list (alist-get 'tags entry))))
 	     ;; (project-max-length (taskwarrior--get-max-length 'project entries))
 	     ;; (project-spacing    (- project-max-length (length project)))
 	     (description        (alist-get 'description entry)))
-	  (insert (concat " " id " " urgency " " project " " tags " " description "\n"))))))
+	  (insert (concat " " id " " urgency " " priority " " project " " tags " " description "\n"))))))
 
 
 (defun taskwarrior--concat-tag-list (tags)
