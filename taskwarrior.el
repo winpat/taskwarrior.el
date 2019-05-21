@@ -13,8 +13,6 @@
 
 (defvar taskwarrior-buffer-name "*taskwarrior*")
 
-(defconst taskwarrior-mutating-commands '("add" "modify"))
-
 (defvar taskwarrior-description 'taskwarrior-description
   "Taskwarrior mode face used for tasks with a priority of C.")
 
