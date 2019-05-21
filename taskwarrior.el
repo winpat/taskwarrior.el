@@ -148,6 +148,18 @@
       (switch-to-buffer-other-window buf)
       (insert (taskwarrior--shell-command "info" "" id)))))
 
+(defun taskwarrior--parse-created-task-id (output)
+  (when (string-match "^.*Created task \\([0-9]+\\)\\.*$" output)
+    (message (match-string 1 output))))
+
+(defun taskwarrior-org-store-link (arg)
+  (interactive "P")
+  (let* ((link (org-store-link arg))
+	 (description (read-from-minibuffer "Description: "))
+	 (id (taskwarrior--parse-created-task-id
+	      (shell-command-to-string (format "task add %s" description)))))
+    (shell-command-to-string (format "task %s annotate %s" id link))))
+
 (defun taskwarrior-id-at-point ()
   (let ((line (thing-at-point 'line t)))
     (string-match "^ [0-9]*" line)
