@@ -72,7 +72,7 @@
   (define-key taskwarrior-mode-map (kbd "j") 'taskwarrior-next-task)
   (define-key taskwarrior-mode-map (kbd "q") 'quit-window)
   (define-key taskwarrior-mode-map (kbd "e") 'taskwarrior-change-description)
-  (define-key taskwarrior-mode-map (kbd "U") 'taskwarrior-change-priority)
+  (define-key taskwarrior-mode-map (kbd "U") 'taskwarrior-edit-priority)
   (define-key taskwarrior-mode-map (kbd "g") 'taskwarrior-update-buffer)
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
   (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-done)
@@ -258,10 +258,13 @@
   (interactive)
   (taskwarrior--change-attribute "description"))
 
-(defun taskwarrior-change-priority ()
+(defun taskwarrior-edit-priority ()
   "Change the priority of a task"
   (interactive)
-  (taskwarrior--change-attribute "priority"))
+  (let* ((id (taskwarrior-id-at-point))
+	 (options '("" "H" "M" "L"))
+	 (new      (completing-read "Priority: " options)))
+    (taskwarrior--mutable-shell-command "modify" id (concat "priority:" new))))
 
 (defun taskwarrior-add (description)
   (interactive "sDescription: ")
