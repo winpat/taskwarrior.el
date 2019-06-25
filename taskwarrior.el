@@ -16,6 +16,9 @@
 (defvar taskwarrior-description 'taskwarrior-description
   "Taskwarrior mode face used for tasks with a priority of C.")
 
+(defvar taskwarrior-profile-alist 'taskwarrior-profile-alist
+  "A list of named filters in the form an associative list.")
+
 (defface taskwarrior-priority-high-face
   '((((min-colors 88) (class color))
      (:foreground "red1"))
@@ -76,6 +79,7 @@
   (define-key taskwarrior-mode-map (kbd "g") 'taskwarrior-update-buffer)
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
   (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-done)
+  (define-key taskwarrior-mode-map (kbd "l") 'taskwarrior-load-profile)
   (define-key taskwarrior-mode-map (kbd "o") 'taskwarrior-open-annotation)
   (define-key taskwarrior-mode-map (kbd "D") 'taskwarrior-delete)
   (define-key taskwarrior-mode-map (kbd "m") 'taskwarrior-mark-task)
@@ -100,6 +104,16 @@
 	 (due (taskwarrior--parse-timestamp (alist-get 'due task))))
     (when due
       (message "Due: %s | %i Annotations" due annotation-count))))
+
+(defun taskwarrior-load-profile ()
+  (interactive)
+  (let* ((profiles (-map 'car taskwarrior-profile-alist))
+	 (profile (completing-read "Profile: " profiles))
+	 (filter (cdr (assoc-string profile taskwarrior-profile-alist))))
+    (progn
+      (taskwarrior--set-filter filter)
+      (taskwarrior-update-buffer filter))))
+
 
 (defun taskwarrior-previous-task ()
   (interactive)
