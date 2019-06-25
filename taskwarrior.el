@@ -75,7 +75,7 @@
   (define-key taskwarrior-mode-map (kbd "j") 'taskwarrior-next-task)
   (define-key taskwarrior-mode-map (kbd "q") 'quit-window)
   (define-key taskwarrior-mode-map (kbd "e") 'taskwarrior-change-description)
-  (define-key taskwarrior-mode-map (kbd "U") 'taskwarrior-change-priority)
+  (define-key taskwarrior-mode-map (kbd "U") 'taskwarrior-edit-priority)
   (define-key taskwarrior-mode-map (kbd "g") 'taskwarrior-update-buffer)
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
   (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-done)
@@ -88,7 +88,7 @@
   (define-key taskwarrior-mode-map (kbd "r") 'taskwarrior-reset-filter)
   (define-key taskwarrior-mode-map (kbd "t") 'taskwarrior-edit-tags)
   (define-key taskwarrior-mode-map (kbd "RET") 'taskwarrior-info)
-  (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-change-project))
+  (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-edit-project))
 
 
 (defun test ()
@@ -256,20 +256,29 @@
 			(set-difference old new :test #'string-equal) " ")))
     (taskwarrior--mutable-shell-command "modify" id (concat added-tags " " removed-tags))))
 
+
+(defun taskwarrior-edit-project ()
+  "Change the project of a task"
+  (interactive)
+  (let* ((id      (taskwarrior-id-at-point))
+	 (task    (taskwarrior-export-task id))
+	 (options (split-string (shell-command-to-string "task _projects") "\n"))
+	 (old     (alist-get 'project task))
+	 (new     (completing-read "Project: " options nil nil old)))
+    (taskwarrior--mutable-shell-command "modify" id (concat "project:" new))))
+
 (defun taskwarrior-change-description ()
   "Change the description of a task"
   (interactive)
   (taskwarrior--change-attribute "description"))
 
-(defun taskwarrior-change-priority ()
+(defun taskwarrior-edit-priority ()
   "Change the priority of a task"
   (interactive)
-  (taskwarrior--change-attribute "priority"))
-
-(defun taskwarrior-change-project ()
-  "Change the project of a task"
-  (interactive)
-  (taskwarrior--change-attribute "project"))
+  (let* ((id (taskwarrior-id-at-point))
+	 (options '("" "H" "M" "L"))
+	 (new      (completing-read "Priority: " options)))
+    (taskwarrior--mutable-shell-command "modify" id (concat "priority:" new))))
 
 (defun taskwarrior-add (description)
   (interactive "sDescription: ")
