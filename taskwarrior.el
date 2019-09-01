@@ -165,7 +165,8 @@
   (when (string-match "^.*Created task \\([0-9]+\\)\\.*$" output)
     (message (match-string 1 output))))
 
-(defun taskwarrior-org-store-link (arg)
+
+(defun taskwarrior-capture (arg)
   (interactive "P")
   (let* ((link (org-store-link arg))
 	 (description (read-from-minibuffer "Description: "))
