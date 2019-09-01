@@ -78,6 +78,7 @@
   (define-key taskwarrior-mode-map (kbd "U") 'taskwarrior-edit-priority)
   (define-key taskwarrior-mode-map (kbd "g") 'taskwarrior-update-buffer)
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
+  (define-key taskwarrior-mode-map (kbd "A") 'taskwarrior-annotate)
   (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-done)
   (define-key taskwarrior-mode-map (kbd "l") 'taskwarrior-load-profile)
   (define-key taskwarrior-mode-map (kbd "o") 'taskwarrior-open-annotation)
@@ -299,6 +300,12 @@
 	(confirmation (yes-or-no-p "Delete?")))
     (when confirmation
 	  (taskwarrior--mutable-shell-command "delete" id "" "" "yes"))))
+
+(defun taskwarrior-annotate (annotation)
+  "Delete current task."
+  (interactive "sAnnotation: ")
+  (let ((id (taskwarrior-id-at-point)))
+    (taskwarrior--mutable-shell-command "annotate" id annotation)))
 
 (defun taskwarrior--mutable-shell-command (command &optional filter modifications misc confirm)
   "Run shell command and restore taskwarrior buffer."
