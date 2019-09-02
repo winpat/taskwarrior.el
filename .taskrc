@@ -1,0 +1,2 @@
+# Otherwise the `task export` output isn't valid json.
+verbose=no
