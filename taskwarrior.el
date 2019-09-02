@@ -130,20 +130,30 @@
   (interactive)
   (let ((id (taskwarrior-id-at-point)))
     (if (local-variable-p 'taskwarrior-marks)
-	(setq-local taskwarrior-marks (remove id taskwarrior-marks)))))
+	(setq-local taskwarrior-marks (remove id taskwarrior-marks))))
+  (progn
+    (save-excursion
+      (read-only-mode -1)
+      (beginning-of-line)
+      (delete-forward-char 1)
+      (insert " ")
+      (read-only-mode 1))
+    (next-line)))
 
 (defun taskwarrior-mark-task ()
   (interactive)
   (let ((id (taskwarrior-id-at-point)))
+    (if (local-variable-p 'taskwarrior-marks)
+	(setq-local taskwarrior-marks (delete-dups (cons id taskwarrior-marks)))
+      (setq-local taskwarrior-marks (list id)))
     (progn
-      (if (local-variable-p 'taskwarrior-marks)
-	  (setq-local taskwarrior-marks (delete-dups (cons id taskwarrior-marks)))
-	(setq-local taskwarrior-marks (list id))))
-    (save-excursion
-      (read-only-mode -1)
-      (beginning-of-line)
-      (insert "*")
-      (read-only-mode 1))))
+      (save-excursion
+	(read-only-mode -1)
+	(beginning-of-line)
+	(delete-forward-char 1)
+	(insert "*")
+	(read-only-mode 1))
+      (next-line))))
 
 (defun taskwarrior-open-annotation ()
   (interactive)
@@ -176,7 +186,7 @@
 
 (defun taskwarrior-id-at-point ()
   (let ((line (thing-at-point 'line t)))
-    (string-match "^ [0-9]*" line)
+    (string-match "^  [0-9]*" line)
     (string-trim-left (match-string 0 line))))
 
 (defun taskwarrior--get-filter-as-string ()
@@ -286,13 +296,27 @@
   (interactive "sDescription: ")
   (taskwarrior--mutable-shell-command "add" "" description))
 
+(defun taskwarrior-mark-p ()
+  "Whether there are any marked tasks"
+  (and
+   (boundp 'taskwarrior-marks)
+   (> (length taskwarrior-marks) 0)))
+
 (defun taskwarrior-done ()
-  "Mark current task as done."
   (interactive)
-  (let ((id (taskwarrior-id-at-point))
-	(confirmation (yes-or-no-p "Done?")))
-    (when confirmation
-	(taskwarrior--mutable-shell-command "done" id))))
+  (taskwarrior-multi-action 'taskwarrior--done "Done?"))
+
+(defun taskwarrior-multi-action (action confirmation-text)
+  (when (yes-or-no-p confirmation-text)
+    (if (taskwarrior-mark-p)
+	(dolist (id taskwarrior-marks)
+	  (funcall action id))
+      (let ((id (taskwarrior-id-at-point)))
+	    (funcall action id)))))
+
+(defun taskwarrior--done (id)
+  "Mark task as done."
+  (taskwarrior--mutable-shell-command "done" id))
 
 (defun taskwarrior-delete ()
   "Delete current task."
@@ -382,7 +406,7 @@ the front and focus it.  Otherwise, create one and load the data."
 	     ;; (project-max-length (taskwarrior--get-max-length 'project entries))
 	     ;; (project-spacing    (- project-max-length (length project)))
 	     (description        (alist-get 'description entry)))
-	  (insert (concat " " id " " urgency " " priority " " project " " tags " " description "\n"))))))
+	  (insert (concat "  " id " " urgency " " priority " " project " " tags " " description "\n"))))))
 
 
 (defun taskwarrior--concat-tag-list (tags)
