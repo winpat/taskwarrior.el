@@ -69,10 +69,6 @@
 (defvar taskwarrior-mode-map nil "Keymap for `taskwarrior-mode'")
 (progn
   (setq taskwarrior-mode-map (make-sparse-keymap))
-  (define-key taskwarrior-mode-map (kbd "p") 'taskwarrior-previous-task)
-  (define-key taskwarrior-mode-map (kbd "k") 'taskwarrior-previous-task)
-  (define-key taskwarrior-mode-map (kbd "n") 'taskwarrior-next-task)
-  (define-key taskwarrior-mode-map (kbd "j") 'taskwarrior-next-task)
   (define-key taskwarrior-mode-map (kbd "q") 'quit-window)
   (define-key taskwarrior-mode-map (kbd "e") 'taskwarrior-change-description)
   (define-key taskwarrior-mode-map (kbd "U") 'taskwarrior-edit-priority)
@@ -91,14 +87,6 @@
   (define-key taskwarrior-mode-map (kbd "RET") 'taskwarrior-info)
   (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-edit-project))
 
-(defun taskwarrior--display-task-details-in-echo-area ()
-  (let* ((id (taskwarrior-id-at-point))
-	 (task (taskwarrior-export-task id))
-	 (annotation-count (length (alist-get 'annotations task)))
-	 (due (taskwarrior--parse-timestamp (alist-get 'due task))))
-    (when due
-      (message "Due: %s | %i Annotations" due annotation-count))))
-
 (defun taskwarrior-load-profile ()
   (interactive)
   (let* ((profiles (-map 'car taskwarrior-profile-alist))
@@ -107,17 +95,6 @@
     (progn
       (taskwarrior--set-filter filter)
       (taskwarrior-update-buffer filter))))
-
-
-(defun taskwarrior-previous-task ()
-  (interactive)
-  (previous-line)
-  (taskwarrior--display-task-details-in-echo-area))
-
-(defun taskwarrior-next-task ()
-  (interactive)
-  (next-line)
-  (taskwarrior--display-task-details-in-echo-area))
 
 (defun taskwarrior-unmark-task ()
   (interactive)
@@ -217,15 +194,41 @@
       (message cmd)
       (shell-command-to-string cmd))))
 
-(defun taskwarrior-export (filter)
-  "Export taskwarrior entries as JSON"
-  (vector-to-list
-   (json-read-from-string
-    (taskwarrior--shell-command "export" filter))))
+(defun vector-to-list (vector)
+  "Convert a vector to a list"
+  (append vector nil))
 
-(defun taskwarrior-load-tasks (filter)
-  "Load tasks into buffer-local variable"
-  (setq-local taskwarrior-tasks (taskwarrior-export filter)))
+(defun taskwarrior--concat-tag-list (tags)
+  (mapconcat
+   (function (lambda (x) (format "+%s" x)))
+   (vector-to-list tags)
+   " "))
+
+(defun taskwarrior-export ()
+  "Turn task export into the tabulated list entry form"
+  (mapcar
+   (lambda (entry)
+     (let* ((id          (format "%s" (alist-get 'id entry)))
+	    (urgency     (format "%0.2f" (alist-get 'urgency entry)))
+	    (priority    (format " %s " (or (alist-get 'priority entry) "")))
+	    (project     (or (format "%s" (alist-get 'project entry)) ""))
+	    (tags        (or (taskwarrior--concat-tag-list (alist-get 'tags entry)) ""))
+	    (description (format "%s" (alist-get 'description entry))))
+       `(,id [,id ,urgency ,priority ,project ,tags ,description])))
+   (vector-to-list
+    (json-read-from-string
+     (taskwarrior--shell-command "export" "id.not:0")))))
+
+(defun taskwarrior-update-buffer (&optional filter)
+  (interactive)
+  (let* ((filter (taskwarrior--get-filter-as-string)))
+    (progn
+      (setq tabulated-list-entries (taskwarrior-export))
+      (tabulated-list-print t)
+      (goto-char (point-min))
+      (while (not (equal (overlays-at (point)) nil))
+	(forward-char))
+      (taskwarrior--set-filter filter))))
 
 (defun taskwarrior-export-task (id)
   (let ((task (vector-to-list
@@ -260,7 +263,6 @@
 			(function (lambda (x) (concat "-" x)))
 			(set-difference old new :test #'string-equal) " ")))
     (taskwarrior--mutable-shell-command "modify" id (concat added-tags " " removed-tags))))
-
 
 (defun taskwarrior-edit-project ()
   "Change the project of a task"
@@ -332,15 +334,26 @@
 	(taskwarrior-update-buffer)
 	(goto-line line-number)))
 
+(defun taskwarrior--urgency-predicate (A B)
+  (let ((a (aref (cadr A) 1))
+	(b (aref (cadr B) 1)))
+    (string> a b)))
 
 ;; Setup a major mode for taskwarrior
 ;;;###autoload
-(define-derived-mode taskwarrior-mode text-mode "taskwarrior"
+(define-derived-mode taskwarrior-mode tabulated-list-mode "taskwarrior"
   "Major mode for interacting with taskwarrior. \\{taskwarrior-mode-map}"
   (setq font-lock-defaults '(taskwarrior-highlight-regexps))
-  (setq goal-column 0)
-  (auto-revert-mode)
-  (setq buffer-read-only t))
+  (setq tabulated-list-format
+        `[("Id" 3 nil)
+          ("Urg" 6 taskwarrior--urgency-predicate)
+          ("Pri" 3 nil)
+          ("Project"  15 nil)
+          ("Tags"  15 nil)
+          ("Description"  100 nil)])
+  (setq tabulated-list-padding 2)
+  (setq tabulated-list-sort-key (cons "Urg" nil)) (tabulated-list-init-header)
+  (taskwarrior-update-buffer ""))
 
 ;;; Externally visible functions
 ;;;###autoload
@@ -351,71 +364,7 @@ the front and focus it.  Otherwise, create one and load the data."
   (let* ((buf (get-buffer-create taskwarrior-buffer-name)))
       (progn
 	(switch-to-buffer buf)
-	(taskwarrior-update-buffer)
+	;; (taskwarrior-update-buffer)
 	(setq font-lock-defaults '(taskwarrior-highlight-regexps))
 	(taskwarrior-mode)
 	(hl-line-mode))))
-
-(defun taskwarrior-update-buffer (&optional filter)
-  (interactive)
-  (let ((filter (taskwarrior--get-filter-as-string)))
-    (progn
-      (read-only-mode -1)
-      (erase-buffer)
-      (taskwarrior-load-tasks (concat "1-1000 " filter))
-      (taskwarrior-write-entries)
-      (read-only-mode t)
-      (goto-char (point-min))
-      (while (not (equal (overlays-at (point)) nil))
-	(forward-char))
-      (taskwarrior--set-filter filter))))
-
-(defun taskwarrior--sort-by-urgency (entries &optional asc)
-  ;; TODO: Figure out how to store a function in the cmp variable.
-  (let ((cmp (if asc '< '>)))
-    (sort entries #'(lambda (x y)
-		    (> (alist-get 'urgency x)
-		       (alist-get 'urgency y))))))
-
-(defun vector-to-list (vector)
-  "Convert a vector to a list"
-  (append vector nil))
-
-
-(defun taskwarrior--get-max-length (key lst)
-  "Get the length of the longst element in a list"
-  (apply 'max
-	 (-map 'length
-	       (-map (-partial 'alist-get key) lst))))
-
-(defun taskwarrior-write-entries ()
-  (let ((entries (taskwarrior--sort-by-urgency taskwarrior-tasks)))
-    (dolist (entry entries)
-      (let* ((id                 (format "%-2d" (alist-get 'id entry)))
-	     (urgency            (format "(%05.2f)" (alist-get 'urgency entry)))
-	     (priority           (format "%s" (or (alist-get 'priority entry) " ")))
-	     (project            (format "[%s]" (alist-get 'project entry)))
-	     (tags               (format "%s" (taskwarrior--concat-tag-list (alist-get 'tags entry))))
-	     ;; (project-max-length (taskwarrior--get-max-length 'project entries))
-	     ;; (project-spacing    (- project-max-length (length project)))
-	     (description        (alist-get 'description entry)))
-	  (insert (concat "  " id " " urgency " " priority " " project " " tags " " description "\n"))))))
-
-
-(defun taskwarrior--concat-tag-list (tags)
-  (mapconcat (function (lambda (x) (format "+%s" x))) (vector-to-list tags) " "))
-
-(defun taskwarrior--parse-timestamp (ts)
-  "Turn the taskwarrior timestamp into a readable format"
-  (if (not ts)
-      ts
-    (let ((year   (substring ts 0 4))
-	  (month  (substring ts 4 6))
-	  (day    (substring ts 6 8))
-	  (hour   (substring ts 9 11))
-	  (minute (substring ts 11 13))
-  	  (second (substring ts 13 15)))
-      (format "%s-%s-%s %s:%s:%s" year month day hour minute second))))
-
-
-(global-set-key (kbd "C-x t") 'taskwarrior)
