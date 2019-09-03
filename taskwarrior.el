@@ -91,13 +91,6 @@
   (define-key taskwarrior-mode-map (kbd "RET") 'taskwarrior-info)
   (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-edit-project))
 
-
-(defun test ()
-  (interactive)
-  (let ((line (thing-at-point 'line t)))
-    (string-match (rx "* 1"))
-    (string-trim-left (match-string 0 line))))
-
 (defun taskwarrior--display-task-details-in-echo-area ()
   (let* ((id (taskwarrior-id-at-point))
 	 (task (taskwarrior-export-task id))
