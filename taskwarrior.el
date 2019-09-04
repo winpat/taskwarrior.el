@@ -145,10 +145,15 @@
   (when (string-match "^.*Created task \\([0-9]+\\)\\.*$" output)
     (message (match-string 1 output))))
 
+(defun taskwarrior--parse-org-link (link)
+    (string-match org-bracket-link-regexp link)
+    (list
+     (match-string 1 link)
+     (match-string 3 link)))
 
 (defun taskwarrior-capture (arg)
   (interactive "P")
-  (let* ((link (org-store-link arg))
+  (let* ((link (car (cdr (taskwarrior--parse-org-link (org-store-link arg)))))
 	 (description (read-from-minibuffer "Description: "))
 	 (id (taskwarrior--parse-created-task-id
 	      (shell-command-to-string (format "task add %s" description)))))
