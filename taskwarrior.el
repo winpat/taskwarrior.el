@@ -303,6 +303,14 @@
    (boundp 'taskwarrior-marks)
    (> (length taskwarrior-marks) 0)))
 
+(defun taskwarrior-delete ()
+  (interactive)
+  (taskwarrior-multi-action 'taskwarrior--delete "Delete?"))
+
+(defun taskwarrior--delete (id)
+  "Delete task with id."
+  (taskwarrior--mutable-shell-command "delete" id "" "" "yes"))
+
 (defun taskwarrior-done ()
   (interactive)
   (taskwarrior-multi-action 'taskwarrior--done "Done?"))
@@ -318,14 +326,6 @@
 (defun taskwarrior--done (id)
   "Mark task as done."
   (taskwarrior--mutable-shell-command "done" id))
-
-(defun taskwarrior-delete ()
-  "Delete current task."
-  (interactive)
-  (let ((id (taskwarrior-id-at-point))
-	(confirmation (yes-or-no-p "Delete?")))
-    (when confirmation
-	  (taskwarrior--mutable-shell-command "delete" id "" "" "yes"))))
 
 (defun taskwarrior-annotate (annotation)
   "Delete current task."
