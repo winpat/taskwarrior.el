@@ -343,7 +343,9 @@
 (defun taskwarrior--urgency-predicate (A B)
   (let ((a (aref (cadr A) 1))
 	(b (aref (cadr B) 1)))
-    (string> a b)))
+    (>
+     (string-to-number a)
+     (string-to-number b))))
 
 ;; Setup a major mode for taskwarrior
 ;;;###autoload
