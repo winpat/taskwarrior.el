@@ -13,11 +13,14 @@
 
 (defvar taskwarrior-buffer-name "*taskwarrior*")
 
-(defvar taskwarrior-filter nil)
+(defvar taskwarrior-active-filter nil "Currently active filter.")
+
+(defvar taskwarrior-active-profile nil "Name of the currently active profile.")
+
 (defvar taskwarrior-description 'taskwarrior-description
   "Taskwarrior mode face used for tasks with a priority of C.")
 
-(defvar taskwarrior-profile-alist 'taskwarrior-profile-alist
+(defvar taskwarrior-profile-alist nil
   "A list of named filters in the form an associative list.")
 
 (defface taskwarrior-priority-high-face
@@ -88,14 +91,14 @@
   (define-key taskwarrior-mode-map (kbd "RET") 'taskwarrior-info)
   (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-edit-project))
 
-(defun taskwarrior-load-profile ()
-  (interactive)
-  (let* ((profiles (-map 'car taskwarrior-profile-alist))
-	 (profile (completing-read "Profile: " profiles))
-	 (filter (cdr (assoc-string profile taskwarrior-profile-alist))))
+(defun taskwarrior-load-profile (profile)
+  (interactive
+   (list (completing-read "Profile: " (-map 'car taskwarrior-profile-alist))))
+  (let ((filter (cdr (assoc-string profile taskwarrior-profile-alist))))
     (progn
-      (taskwarrior--set-filter filter)
-      (taskwarrior-update-buffer filter))))
+      (setq taskwarrior-active-profile profile)
+      (setq taskwarrior-active-filter filter)
+      (taskwarrior-update-buffer))))
 
 (defun taskwarrior-unmark-task ()
   (interactive)
@@ -168,14 +171,14 @@
 (defun taskwarrior-reset-filter ()
   (interactive)
   (progn
-    (setq-local taskwarrior-filter nil)
+    (setq-local taskwarrior-active-filter nil)
     (taskwarrior-update-buffer)))
 
 (defun taskwarrior-set-filter ()
   (interactive)
-  (let ((new-filter (read-from-minibuffer "Filter: " taskwarrior-filter)))
+  (let ((new-filter (read-from-minibuffer "Filter: " taskwarrior-active-filter)))
     (progn
-      (setq-local taskwarrior-filter new-filter)
+      (setq-local taskwarrior-active-filter new-filter)
       (taskwarrior-update-buffer))))
 
 (defun taskwarrior--shell-command (command &optional filter modifications miscellaneous confirm)
@@ -221,8 +224,8 @@
   (interactive)
     (progn
       (setq tabulated-list-entries
-	    (if taskwarrior-filter
-		(taskwarrior-export taskwarrior-filter)
+	    (if taskwarrior-active-filter
+		(taskwarrior-export taskwarrior-active-filter)
 	      (taskwarrior-export)))
       (tabulated-list-print t)))
 
