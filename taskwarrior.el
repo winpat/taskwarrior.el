@@ -13,6 +13,7 @@
 
 (defvar taskwarrior-buffer-name "*taskwarrior*")
 
+(defvar taskwarrior-filter nil)
 (defvar taskwarrior-description 'taskwarrior-description
   "Taskwarrior mode face used for tasks with a priority of C.")
 
@@ -81,7 +82,7 @@
   (define-key taskwarrior-mode-map (kbd "D") 'taskwarrior-delete)
   (define-key taskwarrior-mode-map (kbd "m") 'taskwarrior-mark-task)
   (define-key taskwarrior-mode-map (kbd "u") 'taskwarrior-unmark-task)
-  (define-key taskwarrior-mode-map (kbd "f") 'taskwarrior-filter)
+  (define-key taskwarrior-mode-map (kbd "f") 'taskwarrior-set-filter)
   (define-key taskwarrior-mode-map (kbd "r") 'taskwarrior-reset-filter)
   (define-key taskwarrior-mode-map (kbd "t") 'taskwarrior-edit-tags)
   (define-key taskwarrior-mode-map (kbd "RET") 'taskwarrior-info)
@@ -164,28 +165,18 @@
     (string-match "^  [0-9]*" line)
     (string-trim-left (match-string 0 line))))
 
-(defun taskwarrior--get-filter-as-string ()
-  (if (local-variable-p 'taskwarrior-active-filters)
-      (mapconcat 'identity taskwarrior-active-filters " ")
-    ""))
-
-(defun taskwarrior--set-filter (filter)
-  (cond ((stringp filter) (setq-local taskwarrior-active-filters (split-string filter " ")))
-	((listp filter) (setq-local taskwarrior-active-filters filter))
-	(t (error "Filter did not match any supported type."))))
-
 (defun taskwarrior-reset-filter ()
   (interactive)
   (progn
-    (taskwarrior--set-filter "")
-    (taskwarrior-update-buffer "")))
+    (setq-local taskwarrior-filter nil)
+    (taskwarrior-update-buffer)))
 
-(defun taskwarrior-filter ()
+(defun taskwarrior-set-filter ()
   (interactive)
-  (let ((new-filter (read-from-minibuffer "Filter: " (taskwarrior--get-filter-as-string))))
+  (let ((new-filter (read-from-minibuffer "Filter: " taskwarrior-filter)))
     (progn
-      (taskwarrior--set-filter new-filter)
-      (taskwarrior-update-buffer new-filter))))
+      (setq-local taskwarrior-filter new-filter)
+      (taskwarrior-update-buffer))))
 
 (defun taskwarrior--shell-command (command &optional filter modifications miscellaneous confirm)
   (let* ((confirmation (if confirm (concat "echo " confirm " |") ""))
@@ -209,32 +200,31 @@
    (vector-to-list tags)
    " "))
 
-(defun taskwarrior-export ()
+(defun taskwarrior-export (&optional filter)
   "Turn task export into the tabulated list entry form"
-  (mapcar
-   (lambda (entry)
-     (let* ((id          (format "%s" (alist-get 'id entry)))
-	    (urgency     (format "%0.2f" (alist-get 'urgency entry)))
-	    (priority    (format " %s " (or (alist-get 'priority entry) "")))
-	    (annotations (format "%d"  (length (or (alist-get 'annotations entry) '()))))
-	    (project     (or (format "%s" (alist-get 'project entry)) ""))
-	    (tags        (or (taskwarrior--concat-tag-list (alist-get 'tags entry)) ""))
-	    (description (format "%s" (alist-get 'description entry))))
-       `(,id [,id ,urgency ,priority ,annotations ,project ,tags ,description])))
-   (vector-to-list
-    (json-read-from-string
-     (taskwarrior--shell-command "export" "id.not:0")))))
+  (let ((filter (concat filter " id.not:0")))
+    (mapcar
+     (lambda (entry)
+       (let* ((id          (format "%s" (alist-get 'id entry)))
+	      (urgency     (format "%0.2f" (alist-get 'urgency entry)))
+	      (priority    (format " %s " (or (alist-get 'priority entry) "")))
+	      (annotations (format "%d"  (length (or (alist-get 'annotations entry) '()))))
+	      (project     (or (format "%s" (alist-get 'project entry)) ""))
+	      (tags        (or (taskwarrior--concat-tag-list (alist-get 'tags entry)) ""))
+	      (description (format "%s" (alist-get 'description entry))))
+	 `(,id [,id ,urgency ,priority ,annotations ,project ,tags ,description])))
+     (vector-to-list
+      (json-read-from-string
+       (taskwarrior--shell-command "export" filter))))))
 
-(defun taskwarrior-update-buffer (&optional filter)
+(defun taskwarrior-update-buffer ()
   (interactive)
-  (let* ((filter (taskwarrior--get-filter-as-string)))
     (progn
-      (setq tabulated-list-entries (taskwarrior-export))
-      (tabulated-list-print t)
-      (goto-char (point-min))
-      (while (not (equal (overlays-at (point)) nil))
-	(forward-char))
-      (taskwarrior--set-filter filter))))
+      (setq tabulated-list-entries
+	    (if taskwarrior-filter
+		(taskwarrior-export taskwarrior-filter)
+	      (taskwarrior-export)))
+      (tabulated-list-print t)))
 
 (defun taskwarrior-export-task (id)
   (let ((task (vector-to-list
@@ -362,7 +352,7 @@
           ("Description"  100 nil)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Urg" nil)) (tabulated-list-init-header)
-  (taskwarrior-update-buffer ""))
+  (taskwarrior-update-buffer))
 
 ;;; Externally visible functions
 ;;;###autoload
