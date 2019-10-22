@@ -290,7 +290,14 @@
 
 (defun taskwarrior-add (description)
   (interactive "sDescription: ")
-  (taskwarrior--mutable-shell-command "add" "" description))
+  (progn
+    (taskwarrior--add description)
+    (taskwarrior--revert-buffer)))
+
+(defun taskwarrior--add (description)
+  (let ((output   (taskwarrior--shell-command "add" "" description)))
+    (when (string-match "Created task \\([[:digit:]]+\\)." output)
+      (match-string 1 output))))
 
 (defun taskwarrior-mark-p ()
   "Whether there are any marked tasks"
@@ -327,6 +334,12 @@
   (interactive "sAnnotation: ")
   (let ((id (taskwarrior-id-at-point)))
     (taskwarrior--mutable-shell-command "annotate" id annotation)))
+
+(defun taskwarrior--revert-buffer ()
+  "Revert taskwarrior buffer."
+  (let ((line-number (line-number-at-pos)))
+    (taskwarrior-update-buffer)
+    (goto-line line-number)))
 
 (defun taskwarrior--mutable-shell-command (command &optional filter modifications misc confirm)
   "Run shell command and restore taskwarrior buffer."
