@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+    - '**/*.md'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        emacs_version:
+          - 26.1
+          - 26.2
+          - 26.3
+          - snapshot
+    steps:
+    - name: Set up Emacs
+      uses: purcell/setup-emacs@v1.0
+      with:
+        version: ${{ matrix.emacs_version }}
+    - uses: actions/checkout@v1
+    - name: Run a one-line script
+      run: echo Hello, world!
