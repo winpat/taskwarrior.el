@@ -88,6 +88,7 @@
   (define-key taskwarrior-mode-map (kbd "m") 'taskwarrior-mark-task)
   (define-key taskwarrior-mode-map (kbd "u") 'taskwarrior-unmark-task)
   (define-key taskwarrior-mode-map (kbd "r") 'taskwarrior-reset-filter)
+  (define-key taskwarrior-mode-map (kbd "f") 'taskwarrior-set-filter)
   (define-key taskwarrior-mode-map (kbd "t") 'taskwarrior-edit-tags)
   (define-key taskwarrior-mode-map (kbd "RET") 'taskwarrior-info)
   (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-edit-project))
