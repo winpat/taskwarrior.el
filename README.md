@@ -1,31 +1,28 @@
-Taskwarrior.el
-==============
-An emacs frontend for taskwarrior.
+# Taskwarrior.el
+An interactive emacs frontend for taskwarrior.
 
+> NOTE: **This major mode is under heavy infrequent development.**
 
-Annotations
------------
-Taskwarrior already has the option to add annotations to a task.
+## Installation
+Eventually my goal is to make taskwarrior.el available through MELPA. Currently I simply load the
+necessary elisp through:
 
-(taskwarrior-create-task-from-dired-file)
-(taskwarrior-create-task-from-mu4e-mail)
-
-Capture Templates
------------------
-With taskwarrior you often spending way to many keystrokes on capturing metadata around a new task
-(Especially if you are a heavy user of UDA's). Capture templates to the rescue:
-
-```
-(taskwarrior-capture
-  "Work task"
-  "context:work customer:? project:?)
+``` emacs-lisp
+(use-package taskwarrior
+  :init
+  (load "~/yourcheckout/taskwarrior.el")
+  :bind
+  (("C-x t" . taskwarrior)
+   ("C-x t" . taskwarrior)))
 ```
 
-The `?` automatically present autocompletion options based on `task _unique` in case of UDA or `task _...`
+## Configuration
+TBD
 
+## Development
+While developing we don't want taskwarrior.el to mess with our taskwarrior tasks. That's why we use
+[direnv](https://direnv.net/) to export $TASKRC and $TASKDATA to point to the git repository.
 
-Review
-------
-Quiet often you want to review a list of different
-(taskwarrior-review
-	'("contex:work" "context:school")
+With direnv you can either launch emacs within the
+taskwarrior.el repository to make use of the mentioned einvironment variables or use the excellent
+[emacs-direnv mode](https://github.com/wbolster/emacs-direnv) to make emacs direnv aware.
