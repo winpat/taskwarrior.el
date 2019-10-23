@@ -8,6 +8,8 @@
 ;; TODO: Restore position after taskwarrior-update-buffer is called
 
 (require 'json)
+(require 'dash)
+(require 'transient)
 
 (defgroup taskwarrior nil "An emacs frontend to taskwarrior.")
 

@@ -22,5 +22,7 @@ jobs:
       with:
         version: ${{ matrix.emacs_version }}
     - uses: actions/checkout@v1
-    - name: Run a one-line script
-      run: echo Hello, world!
+    - name: Install taskwarrior package
+      run: sudo apt-get install -y taskwarrior
+    - name: Run ERT test suite
+      run: make test
