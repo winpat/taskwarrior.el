@@ -1,11 +1,37 @@
-;; Frontend for taskwarrior
-;;
+;;; taskwarrior.el --- An interactive taskwarrior interface -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2019-2020 Patrick Winter
+
+;; Author: Patrick Winter <patrickwinter@posteo.ch>
+;; Keywords: Tools
+;; Url: https://gitlab/winpat/taskwarrior.el
+;; Package-requires: ((emacs "26.3"))
+;; Version: 0.0.1
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; The following todo exist:
 ;; TODO: Implement modeline indicator for deadline and entries
 ;; TODO: Update buffer if command modifies the state
 ;; TODO: Extract "1-1000" id filter into variable
 ;; TODO: Figure out the difference between assoc and assoc-string
 ;;       (and why alist-get does not work with strings)
 ;; TODO: Restore position after taskwarrior-update-buffer is called
+
+;;; Code:
 
 (require 'json)
 (require 'dash)
@@ -72,7 +98,7 @@
 	(" M "             . taskwarrior-priority-medium-face)
 	(" H "             . taskwarrior-priority-high-face)))
 
-(defvar taskwarrior-mode-map nil "Keymap for `taskwarrior-mode'")
+(defvar taskwarrior-mode-map nil "Keymap for `taskwarrior-mode'.")
 (progn
   (setq taskwarrior-mode-map (make-sparse-keymap))
   (define-key taskwarrior-mode-map (kbd "a") 'taskwarrior-add)
@@ -96,6 +122,7 @@
   (define-key taskwarrior-mode-map (kbd "P") 'taskwarrior-edit-project))
 
 (defun taskwarrior-load-profile (profile)
+  "Load a predefined taskwarrior PROFILE."
   (interactive
    (list (completing-read "Profile: " (-map 'car taskwarrior-profile-alist))))
   (let ((filter (cdr (assoc-string profile taskwarrior-profile-alist))))
@@ -105,6 +132,7 @@
       (taskwarrior-update-buffer))))
 
 (defun taskwarrior-unmark-task ()
+  "Unmark task."
   (interactive)
   (let ((id (taskwarrior-id-at-point)))
     (if (local-variable-p 'taskwarrior-marks)
@@ -119,6 +147,7 @@
     (next-line)))
 
 (defun taskwarrior-mark-task ()
+  "Mark current task."
   (interactive)
   (let ((id (taskwarrior-id-at-point)))
     (if (local-variable-p 'taskwarrior-marks)
@@ -134,32 +163,38 @@
       (next-line))))
 
 (defun taskwarrior-open-annotation ()
+  "Open annotation on task."
   (interactive)
   (let* ((id (taskwarrior-id-at-point))
 	 (task  (taskwarrior-export-task id))
-	 (annotations (-map (lambda (x) (alist-get 'description x)) (vector-to-list (alist-get 'annotations task))))
+	 (annotations (-map (lambda (x) (alist-get 'description x)) (taskwarrior-vector-to-list (alist-get 'annotations task))))
 	 (choice (completing-read "Tags: " annotations)))
     (org-open-link-from-string choice)))
 
 (defun taskwarrior-info ()
+  "Display detailed information about task."
   (interactive)
   (let* ((id (taskwarrior-id-at-point))
 	 (buf (get-buffer-create "*taskwarrior info*")))
     (progn
       (switch-to-buffer-other-window buf)
-      (insert (taskwarrior--shell-command "info" "" id)))))
+      (erase-buffer)
+      (insert (taskwarrior--shell-command "info" id)))))
 
 (defun taskwarrior--parse-created-task-id (output)
+  "Extract task id from shell OUTPUT of `task add`."
   (when (string-match "^.*Created task \\([0-9]+\\)\\.*$" output)
     (message (match-string 1 output))))
 
 (defun taskwarrior--parse-org-link (link)
+  "Extract 'org-mode' link from LINK."
     (string-match org-bracket-link-regexp link)
     (list
      (match-string 1 link)
      (match-string 3 link)))
 
 (defun taskwarrior-capture (arg)
+  "Capture a taskwarrior task with content ARG."
   (interactive "P")
   (let* ((link (car (cdr (taskwarrior--parse-org-link (org-store-link arg)))))
 	 (description (read-from-minibuffer "Description: "))
@@ -168,17 +203,20 @@
     (shell-command-to-string (format "task %s annotate %s" id link))))
 
 (defun taskwarrior-id-at-point ()
+  "Get id of task at point."
   (let ((line (thing-at-point 'line t)))
     (string-match "^  [0-9]*" line)
     (string-trim-left (match-string 0 line))))
 
 (defun taskwarrior-reset-filter ()
+  "Reset the currently set filter."
   (interactive)
   (progn
     (setq-local taskwarrior-active-filter nil)
     (taskwarrior-update-buffer)))
 
 (defun taskwarrior-set-filter ()
+  "Set or edit the current filter."
   (interactive)
   (let ((new-filter (read-from-minibuffer "Filter: " taskwarrior-active-filter)))
     (progn
@@ -186,6 +224,7 @@
       (taskwarrior-update-buffer))))
 
 (defun taskwarrior--shell-command (command &optional filter modifications miscellaneous confirm)
+  "Run a taskwarrior COMMAND with specified FILTER MODIFICATIONS MISCELLANEOUS CONFIRM."
   (let* ((confirmation (if confirm (concat "echo " confirm " |") ""))
 	 (cmd (format "%s task %s %s %s %s"
 		      (or confirmation "")
@@ -197,18 +236,19 @@
       (message cmd)
       (shell-command-to-string cmd))))
 
-(defun vector-to-list (vector)
-  "Convert a vector to a list"
+(defun taskwarrior-vector-to-list (vector)
+  "Convert a VECTOR to a list."
   (append vector nil))
 
 (defun taskwarrior--concat-tag-list (tags)
+  "Concat a list of TAGS in to readable format."
   (mapconcat
    (function (lambda (x) (format "+%s" x)))
-   (vector-to-list tags)
+   (taskwarrior-vector-to-list tags)
    " "))
 
 (defun taskwarrior-export (&optional filter)
-  "Turn task export into the tabulated list entry form"
+  "Turn task export into the tabulated list entry form filted by FILTER."
   (let ((filter (concat filter " id.not:0")))
     (mapcar
      (lambda (entry)
@@ -220,11 +260,12 @@
 	      (tags        (or (taskwarrior--concat-tag-list (alist-get 'tags entry)) ""))
 	      (description (format "%s" (alist-get 'description entry))))
 	 `(,id [,id ,urgency ,priority ,annotations ,project ,tags ,description])))
-     (vector-to-list
+     (taskwarrior-vector-to-list
       (json-read-from-string
        (taskwarrior--shell-command "export" filter))))))
 
 (defun taskwarrior-update-buffer ()
+  "Update the taskwarrior buffer."
   (interactive)
     (progn
       (setq tabulated-list-entries
@@ -234,15 +275,16 @@
       (tabulated-list-print t)))
 
 (defun taskwarrior-export-task (id)
-  (let ((task (vector-to-list
+  "Export task with ID."
+  (let ((task (taskwarrior-vector-to-list
 	       (json-read-from-string
 		(taskwarrior--shell-command "export" (concat "id:" id))))))
     (if (< (length task) 1)
-	(error "Seems like two task have the same id.")
+	(error "Seems like two task have the same id")
       (car task))))
 
 (defun taskwarrior--change-attribute (attribute)
-  "Change an attribute of a task"
+  "Change an ATTRIBUTE of a task."
   (let* ((prefix (concat attribute ":"))
 	 (id (taskwarrior-id-at-point))
 	 (task  (taskwarrior-export-task id))
@@ -252,11 +294,12 @@
     (taskwarrior--mutable-shell-command "modify" id (concat prefix quoted-value))))
 
 (defun taskwarrior-edit-tags ()
+  "Edit tags on task."
   (interactive)
   (let* ((id (taskwarrior-id-at-point))
 	 (task (taskwarrior-export-task id))
 	 (options (split-string (shell-command-to-string "task _tags") "\n"))
-	 (old (vector-to-list (alist-get 'tags task)))
+	 (old (taskwarrior-vector-to-list (alist-get 'tags task)))
 	 (current-tags (mapconcat 'identity old " "))
 	 (new (split-string (completing-read "Tags: " options nil nil current-tags) " "))
 	 (added-tags (mapconcat
@@ -268,7 +311,7 @@
     (taskwarrior--mutable-shell-command "modify" id (concat added-tags " " removed-tags))))
 
 (defun taskwarrior-edit-project ()
-  "Change the project of a task"
+  "Change the project of a task."
   (interactive)
   (let* ((id      (taskwarrior-id-at-point))
 	 (task    (taskwarrior-export-task id))
@@ -278,48 +321,55 @@
     (taskwarrior--mutable-shell-command "modify" id (concat "project:" new))))
 
 (defun taskwarrior-change-description ()
-  "Change the description of a task"
+  "Change the description of a task."
   (interactive)
   (taskwarrior--change-attribute "description"))
 
 (defun taskwarrior-edit-priority ()
-  "Change the priority of a task"
+  "Change the priority of a task."
   (interactive)
   (let* ((id (taskwarrior-id-at-point))
 	 (options '("" "H" "M" "L"))
 	 (new      (completing-read "Priority: " options)))
     (taskwarrior--mutable-shell-command "modify" id (concat "priority:" new))))
 
+
+
 (defun taskwarrior-add (description)
+  "Add new task with DESCRIPTION."
   (interactive "sDescription: ")
   (progn
     (taskwarrior--add description)
     (taskwarrior--revert-buffer)))
 
 (defun taskwarrior--add (description)
+  "Add new task with DESCRIPTION."
   (let ((output   (taskwarrior--shell-command "add" "" description)))
     (when (string-match "Created task \\([[:digit:]]+\\)." output)
       (match-string 1 output))))
 
 (defun taskwarrior-mark-p ()
-  "Whether there are any marked tasks"
+  "Whether there are any marked tasks."
   (and
    (boundp 'taskwarrior-marks)
    (> (length taskwarrior-marks) 0)))
 
 (defun taskwarrior-delete ()
+  "Delete task at point."
   (interactive)
   (taskwarrior-multi-action 'taskwarrior--delete "Delete?"))
 
 (defun taskwarrior--delete (id)
-  "Delete task with id."
+  "Delete task with ID."
   (taskwarrior--mutable-shell-command "delete" id "" "" "yes"))
 
 (defun taskwarrior-done ()
+  "Mark task at point as done."
   (interactive)
   (taskwarrior-multi-action 'taskwarrior--done "Done?"))
 
 (defun taskwarrior-multi-action (action confirmation-text)
+  "Run a ACTION after processing the CONFIRMATION-TEXT."
   (when (yes-or-no-p confirmation-text)
     (if (taskwarrior-mark-p)
 	(dolist (id taskwarrior-marks)
@@ -328,11 +378,11 @@
 	    (funcall action id)))))
 
 (defun taskwarrior--done (id)
-  "Mark task as done."
+  "Mark task with ID as done."
   (taskwarrior--mutable-shell-command "done" id))
 
 (defun taskwarrior-annotate (annotation)
-  "Delete current task."
+  "Add ANNOTATION to task at point."
   (interactive "sAnnotation: ")
   (let ((id (taskwarrior-id-at-point)))
     (taskwarrior--mutable-shell-command "annotate" id annotation)))
@@ -344,13 +394,14 @@
     (goto-line line-number)))
 
 (defun taskwarrior--mutable-shell-command (command &optional filter modifications misc confirm)
-  "Run shell command and restore taskwarrior buffer."
+  "Run shell COMMAND with FILTER MODIFICATIONS MISC and CONFIRM."
   (let ((line-number (line-number-at-pos)))
 	(taskwarrior--shell-command command filter modifications misc confirm)
 	(taskwarrior-update-buffer)
 	(goto-line line-number)))
 
 (defun taskwarrior--urgency-predicate (A B)
+  "Compare urgency of task A to task B."
   (let ((a (aref (cadr A) 1))
 	(b (aref (cadr B) 1)))
     (>
@@ -377,8 +428,7 @@
 ;;; Externally visible functions
 ;;;###autoload
 (defun taskwarrior ()
-  "Open the taskwarrior buffer.  If one already exists, bring it to
-the front and focus it.  Otherwise, create one and load the data."
+  "Open the taskwarrior buffer.  If one already exists, bring it to the front and focus it.  Otherwise, create one and load the data."
   (interactive)
   (let* ((buf (get-buffer-create taskwarrior-buffer-name)))
       (progn
@@ -389,18 +439,22 @@ the front and focus it.  Otherwise, create one and load the data."
 	(hl-line-mode))))
 
 (defun taskwarrior-set-due ()
+  "Set due date on task."
   (interactive)
   (taskwarrior--change-attribute "due"))
 
 (defun taskwarrior-set-scheduled ()
+  "Set schedule date on task at point."
   (interactive)
   (taskwarrior--change-attribute "scheduled"))
 
 (defun taskwarrior-set-wait ()
+  "Set wait date on task at point."
   (interactive)
   (taskwarrior--change-attribute "wait"))
 
 (defun taskwarrior-set-untl ()
+  "Set until date on task at point."
   (interactive)
   (taskwarrior--change-attribute "until"))
 
@@ -411,3 +465,6 @@ the front and focus it.  Otherwise, create one and load the data."
     ("s" "scheduled" taskwarrior-set-scheduled)
     ("w" "wait"      taskwarrior-set-wait)
     ("u" "until"     taskwarrior-set-untl)]])
+
+(provide 'taskwarrior)
+;;; taskwarrior.el ends here
