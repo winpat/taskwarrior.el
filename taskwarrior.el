@@ -204,9 +204,12 @@
 
 (defun taskwarrior-id-at-point ()
   "Get id of task at point."
-  (let ((line (thing-at-point 'line t)))
-    (string-match "^  [0-9]*" line)
-    (string-trim-left (match-string 0 line))))
+  (let* ((line (thing-at-point 'line t))
+	 (parse-result (string-match "^  [0-9]*" line))
+	 (id (string-trim-left (match-string 0 line))))
+    (if (= id nil)
+	(error "Unable to extract id from line '%s'" line)
+      id)))
 
 (defun taskwarrior-reset-filter ()
   "Reset the currently set filter."
