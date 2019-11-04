@@ -18,5 +18,11 @@
     (should (string= (aref (alist-get 'tags task) 0) "emacs"))
     (should (string= (alist-get 'description task) "Write test suite for taskwarrior.el (using ERT)"))))
 
+(ert-deftest taskwarrior-parse-task-id ()
+  (should (string= (taskwarrior--parse-created-task-id "Created task 9.") "9"))
+  (should (string= (taskwarrior--parse-created-task-id "Created task 1000.") "1000"))
+  (should (string= (taskwarrior--parse-created-task-id "Some invalid input") nil)))
+
+
 (provide 'taskwarrior-test)
 ;;; taskwarrior-test.el ends here
