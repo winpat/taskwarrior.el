@@ -1,4 +1,6 @@
 # Taskwarrior.el
+![](https://github.com/winpat/taskwarrior.el/workflows/CI/badge.svg)
+
 An interactive emacs frontend for taskwarrior.
 
 > NOTE: **This major mode is under heavy infrequent development.**
