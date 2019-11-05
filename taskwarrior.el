@@ -106,7 +106,7 @@
   (define-key taskwarrior-mode-map (kbd "d") 'taskwarrior-date)
   (define-key taskwarrior-mode-map (kbd "x") 'taskwarrior-done)
   (define-key taskwarrior-mode-map (kbd "D") 'taskwarrior-delete)
-  (define-key taskwarrior-mode-map (kbd "e") 'taskwarrior-change-description)
+  (define-key taskwarrior-mode-map (kbd "e") 'taskwarrior-edit-description)
   (define-key taskwarrior-mode-map (kbd "q") 'quit-window)
   (define-key taskwarrior-mode-map (kbd "g") 'taskwarrior-update-buffer)
   (define-key taskwarrior-mode-map (kbd "q") 'quit-window)
@@ -325,8 +325,8 @@
 	 (new     (completing-read "Project: " options nil nil old)))
     (taskwarrior--mutable-shell-command "modify" id (concat "project:" new))))
 
-(defun taskwarrior-change-description ()
-  "Change the description of a task."
+(defun taskwarrior-edit-description ()
+  "Edit the description of a task."
   (interactive)
   (taskwarrior--change-attribute "description"))
 
