@@ -24,9 +24,9 @@
   (should (string= (taskwarrior--parse-created-task-id "Some invalid input") nil)))
 
 (ert-deftest taskwarrior--parse-date ()
-  (should (string= (taskwarrior--parse-date "20191108T225959Z") "08-11-2019"))
-  (should (string= (taskwarrior--parse-date "20191108T225959Z" :date) "08-11-2019"))
-  (should (string= (taskwarrior--parse-date "20191108T225959Z" :datetime) "08-11-2019 22:59:59")))
+  (should (string= (taskwarrior--parse-date "20191108T225959Z") "2019-11-08"))
+  (should (string= (taskwarrior--parse-date "20191108T225959Z" :date) "2019-11-08"))
+  (should (string= (taskwarrior--parse-date "20191108T225959Z" :datetime) "2019-11-08 22:59:59")))
 
 
 (provide 'taskwarrior-test)

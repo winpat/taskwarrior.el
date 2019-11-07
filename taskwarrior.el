@@ -483,10 +483,12 @@
 	 (minute (elt time 1))
 	 (second (elt time 2)))
     (cond
+     ((eq timestamp nil)
+      nil)
      ((eq format :date)
-      (format "%s-%s-%s" day month year hour minute second))
+      (format "%s-%s-%s" year month day hour minute second))
      ((eq format :datetime)
-      (format "%s-%s-%s %s:%s:%s" day month year hour minute second)))))
+      (format "%s-%s-%s %s:%s:%s" year month day hour minute second)))))
 
 
 (provide 'taskwarrior)
