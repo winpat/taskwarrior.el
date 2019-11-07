@@ -471,5 +471,23 @@
     ("w" "wait"      taskwarrior-set-wait)
     ("u" "until"     taskwarrior-set-untl)]])
 
+(defun taskwarrior--parse-date (timestamp &optional format)
+  "Parse a taskwarrior TIMESTAMP into a readable string with FORMAT."
+  (let* ((format (or format :date))
+	 (datetime (timezone-parse-date timestamp))
+	 (year (elt datetime 0))
+	 (month (elt datetime 1))
+	 (day (elt datetime 2))
+	 (time (timezone-parse-time (elt datetime 3)))
+	 (hour (elt time 0))
+	 (minute (elt time 1))
+	 (second (elt time 2)))
+    (cond
+     ((eq format :date)
+      (format "%s-%s-%s" day month year hour minute second))
+     ((eq format :datetime)
+      (format "%s-%s-%s %s:%s:%s" day month year hour minute second)))))
+
+
 (provide 'taskwarrior)
 ;;; taskwarrior.el ends here
