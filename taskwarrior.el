@@ -260,11 +260,12 @@
        (let* ((id          (format "%s" (alist-get 'id entry)))
 	      (urgency     (format "%0.2f" (alist-get 'urgency entry)))
 	      (priority    (format " %s " (or (alist-get 'priority entry) "")))
+	      (due         (format "%s" (or (taskwarrior--parse-date (alist-get 'due entry)) "")))
 	      (annotations (format "%d"  (length (or (alist-get 'annotations entry) '()))))
 	      (project     (or (alist-get 'project entry) ""))
 	      (tags        (or (taskwarrior--concat-tag-list (alist-get 'tags entry)) ""))
 	      (description (format "%s" (alist-get 'description entry))))
-	 `(,id [,id ,urgency ,priority ,annotations ,project ,tags ,description])))
+	 `(,id [,id ,urgency ,priority ,due ,annotations ,project ,tags ,description])))
      (taskwarrior-vector-to-list
       (json-read-from-string
        (taskwarrior--shell-command "export" filter))))))
@@ -337,8 +338,6 @@
 	 (options '("" "H" "M" "L"))
 	 (new      (completing-read "Priority: " options)))
     (taskwarrior--mutable-shell-command "modify" id (concat "priority:" new))))
-
-
 
 (defun taskwarrior-add (description)
   "Add new task with DESCRIPTION."
@@ -422,6 +421,7 @@
         `[("Id" 3 nil)
           ("Urg" 6 taskwarrior--urgency-predicate)
           ("Pri" 3 nil)
+          ("Due" 10 nil)
           ("Ann" 3 nil)
           ("Project"  15 nil)
           ("Tags"  15 nil)
