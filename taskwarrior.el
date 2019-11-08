@@ -36,6 +36,7 @@
 (require 'json)
 (require 'dash)
 (require 'transient)
+(require 'timezone)
 
 (defgroup taskwarrior nil "An emacs frontend to taskwarrior.")
 
