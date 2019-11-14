@@ -301,6 +301,15 @@
          (escaped (format "%s:\"%s\"" attribute new)))
     (taskwarrior--mutable-shell-command "modify" id escaped)))
 
+(defun taskwarrior--change-date (date)
+  "Change a DATE on task."
+  (let* ((prefix (format "%s: " (capitalize date)))
+	 (id (taskwarrior-id-at-point))
+	 (task (taskwarrior-export-task id))
+	 (old (taskwarrior--reformat-date (cdr (assoc-string date task))))
+	 (new (read-from-minibuffer prefix old)))
+    (taskwarrior--mutable-shell-command "modify" id (format "%s:%s" date new))))
+
 (defun taskwarrior-edit-tags ()
   "Edit tags on task."
   (interactive)
@@ -448,44 +457,46 @@
 (defun taskwarrior-set-due ()
   "Set due date on task."
   (interactive)
-  (taskwarrior--change-attribute "due"))
+  (taskwarrior--change-date "due"))
 
 (defun taskwarrior-set-scheduled ()
   "Set schedule date on task at point."
   (interactive)
-  (taskwarrior--change-attribute "scheduled"))
+  (taskwarrior--change-date "scheduled"))
 
 (defun taskwarrior-set-wait ()
   "Set wait date on task at point."
   (interactive)
-  (taskwarrior--change-attribute "wait"))
+  (taskwarrior--change-date "wait"))
 
-(defun taskwarrior-set-untl ()
+(defun taskwarrior-set-until ()
   "Set until date on task at point."
   (interactive)
-  (taskwarrior--change-attribute "until"))
+  (taskwarrior--change-date "until"))
 
 (define-transient-command taskwarrior-date ()
   "Edit date on task"
   [["Date"
-    ("d" "due"       taskwarrior-set-due)
-    ("s" "scheduled" taskwarrior-set-scheduled)
-    ("w" "wait"      taskwarrior-set-wait)
-    ("u" "until"     taskwarrior-set-untl)]])
+    ("d" "Due"       taskwarrior-set-due)
+    ("s" "Scheduled" taskwarrior-set-scheduled)
+    ("w" "Wait"      taskwarrior-set-wait)
+    ("u" "Until"     taskwarrior-set-until)]])
 
 (defun taskwarrior--reformat-date (twdate)
   "Reformat a taskwarrior TWDATE into a readable string."
-  (let ((regex  (rx
-		 (seq
-		  (submatch (= 4 digit))
-		  (submatch (= 2 digit))
-		  (submatch (= 2 digit))
-		  "T"
-		  (submatch (= 2 digit))
-		  (submatch (= 2 digit))
-		  (submatch (= 2 digit))
-		  "Z"
-		  eol))))
+  (if (eq twdate nil)
+      nil
+    (let ((regex  (rx
+		   (seq
+		    (submatch (= 4 digit))
+		    (submatch (= 2 digit))
+		    (submatch (= 2 digit))
+		    "T"
+		    (submatch (= 2 digit))
+		    (submatch (= 2 digit))
+		    (submatch (= 2 digit))
+		    "Z"
+		    eol))))
       (when (string-match regex twdate)
 	(format "%s-%s-%s %s:%s:%s"
 		(match-string 1 twdate)
@@ -493,7 +504,7 @@
 		(match-string 3 twdate)
 		(match-string 4 twdate)
 		(match-string 5 twdate)
-		(match-string 6 twdate)))))
+		(match-string 6 twdate))))))
 
 (defun taskwarrior--parse-date (twdate)
   (ts-parse (taskwarrior--reformat-date twdate)))
