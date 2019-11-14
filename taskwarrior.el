@@ -37,6 +37,7 @@
 (require 'dash)
 (require 'transient)
 (require 'timezone)
+(require 'ts)
 
 (defgroup taskwarrior nil "An emacs frontend to taskwarrior.")
 
@@ -261,7 +262,7 @@
        (let* ((id          (format "%s" (alist-get 'id entry)))
 	      (urgency     (format "%0.2f" (alist-get 'urgency entry)))
 	      (priority    (format " %s " (or (alist-get 'priority entry) "")))
-	      (due         (format "%s" (or (taskwarrior--parse-date (alist-get 'due entry)) "")))
+	      (due         (format "%s" (or (taskwarrior--timespan-days (alist-get 'due entry)) "")))
 	      (annotations (format "%d"  (length (or (alist-get 'annotations entry) '()))))
 	      (project     (or (alist-get 'project entry) ""))
 	      (tags        (or (taskwarrior--concat-tag-list (alist-get 'tags entry)) ""))
@@ -472,25 +473,37 @@
     ("w" "wait"      taskwarrior-set-wait)
     ("u" "until"     taskwarrior-set-untl)]])
 
-(defun taskwarrior--parse-date (timestamp &optional format)
-  "Parse a taskwarrior TIMESTAMP into a readable string with FORMAT."
-  (let* ((format (or format :date))
-	 (datetime (timezone-parse-date timestamp))
-	 (year (elt datetime 0))
-	 (month (elt datetime 1))
-	 (day (elt datetime 2))
-	 (time (timezone-parse-time (elt datetime 3)))
-	 (hour (elt time 0))
-	 (minute (elt time 1))
-	 (second (elt time 2)))
-    (cond
-     ((eq timestamp nil)
-      nil)
-     ((eq format :date)
-      (format "%s-%s-%s" year month day hour minute second))
-     ((eq format :datetime)
-      (format "%s-%s-%s %s:%s:%s" year month day hour minute second)))))
+(defun taskwarrior--reformat-date (twdate)
+  "Reformat a taskwarrior TWDATE into a readable string."
+  (let ((regex  (rx
+		 (seq
+		  (submatch (= 4 digit))
+		  (submatch (= 2 digit))
+		  (submatch (= 2 digit))
+		  "T"
+		  (submatch (= 2 digit))
+		  (submatch (= 2 digit))
+		  (submatch (= 2 digit))
+		  "Z"
+		  eol))))
+      (when (string-match regex twdate)
+	(format "%s-%s-%s %s:%s:%s"
+		(match-string 1 twdate)
+		(match-string 2 twdate)
+		(match-string 3 twdate)
+		(match-string 4 twdate)
+		(match-string 5 twdate)
+		(match-string 6 twdate)))))
 
+(defun taskwarrior--parse-date (twdate)
+  (ts-parse (taskwarrior--reformat-date twdate)))
+
+(defun taskwarrior--timespan-days (twdate)
+  (if (eq twdate nil)
+      nil
+    (let ((now (ts-now))
+	  (datetime (taskwarrior--parse-date twdate)))
+      (format-seconds "%D" (- (ts-unix datetime) (ts-unix now))))))
 
 (provide 'taskwarrior)
 ;;; taskwarrior.el ends here

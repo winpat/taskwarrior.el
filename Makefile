@@ -1,4 +1,4 @@
-ELPA_DEPENDENCIES=package-lint transient dash
+ELPA_DEPENDENCIES=package-lint transient dash ts
 
 ELPA_ARCHIVES=melpa-stable gnu
 
