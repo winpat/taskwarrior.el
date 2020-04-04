@@ -181,7 +181,9 @@
     (progn
       (switch-to-buffer-other-window buf)
       (erase-buffer)
-      (insert (taskwarrior--shell-command "info" id)))))
+      (insert (taskwarrior--shell-command "info" id))
+      (view-mode 1)
+      (setq view-exit-action 'kill-buffer))))
 
 (defun taskwarrior--parse-created-task-id (output)
   "Extract task id from shell OUTPUT of `task add`."
