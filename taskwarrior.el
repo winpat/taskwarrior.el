@@ -279,7 +279,7 @@
       (setq tabulated-list-entries
 	    (if taskwarrior-active-filter
 		(taskwarrior-export taskwarrior-active-filter)
-	      (taskwarrior-export)))
+	      (taskwarrior-export "status=pending")))
       (tabulated-list-print t)))
 
 (defun taskwarrior-export-task (id)
